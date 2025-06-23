@@ -24,7 +24,7 @@ const EncodeForm = () => {
     const formData = new FormData();
     formData.append("image", image);
     formData.append("message", message);
-    const response = await fetch("http://localhost:8000/encode/image", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/encode/image`, {
       method: "POST",
       body: formData,
     });
@@ -51,7 +51,7 @@ const EncodeForm = () => {
     setDecodedMessage("");
     const formData = new FormData();
     formData.append("image", decodeImage);
-    const response = await fetch("http://localhost:8000/decode/image", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/decode/image`, {
       method: "POST",
       body: formData,
     });
@@ -64,105 +64,52 @@ const EncodeForm = () => {
     setDecoding(false);
   };
 
+  // Add this function for downloading the image
+  const handleDownload = async () => {
+    const response = await fetch(resultUrl);
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'encoded.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={{ width: '100%' }}>
-      <form onSubmit={handleSubmit} style={{
-        marginBottom: 28,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'rgba(44, 47, 80, 0.7)',
-        padding: 24,
-        borderRadius: 12,
-        boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-      }}>
-        <input type="file" accept="image/png" onChange={handleImageChange} style={{
-          marginBottom: 16,
-          background: '#23243a',
-          color: '#e3e6f3',
-          border: 'none',
-          fontSize: 16,
-        }} />
+      <div className="steg-section-title">Image Steganography</div>
+      <form onSubmit={handleSubmit} className="steg-form">
+        <label>Upload PNG Image</label>
+        <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
+        <label>Message to Hide</label>
         <input
           type="text"
           placeholder="Enter message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          style={{
-            marginBottom: 16,
-            width: '100%',
-            maxWidth: 340,
-            padding: '12px 16px',
-            borderRadius: 8,
-            border: '1px solid #3949ab',
-            background: '#23243a',
-            color: '#e3e6f3',
-            fontSize: 16,
-            outline: 'none',
-          }}
+          className="steg-input"
         />
-        <button type="submit" disabled={loading} style={{
-          width: '100%',
-          maxWidth: 340,
-          padding: '14px 0',
-          borderRadius: 8,
-          background: 'linear-gradient(90deg, #5c6bc0 0%, #3949ab 100%)',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 18,
-          border: 'none',
-          cursor: 'pointer',
-          marginBottom: 8,
-          boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-          letterSpacing: '0.5px',
-        }}>
+        <button type="submit" disabled={loading} className="steg-btn">
           {loading ? "Encoding..." : "Encode Image"}
         </button>
         {resultUrl && (
-          <div style={{ marginTop: 8 }}>
-            <a href={resultUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#ffb300', fontWeight: 600 }}>
-              Download Encoded Image
-            </a>
+          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <a href={resultUrl} target="_blank" rel="noopener noreferrer" className="steg-result-link">View Encoded Image</a>
+            <button type="button" onClick={handleDownload} className="steg-btn">Download Image</button>
           </div>
         )}
       </form>
-      <form onSubmit={handleDecode} style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'rgba(44, 47, 80, 0.7)',
-        padding: 24,
-        borderRadius: 12,
-        boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-      }}>
-        <input type="file" accept="image/png" onChange={handleDecodeImageChange} style={{
-          marginBottom: 16,
-          background: '#23243a',
-          color: '#e3e6f3',
-          border: 'none',
-          fontSize: 16,
-        }} />
-        <button type="submit" disabled={decoding} style={{
-          width: '100%',
-          maxWidth: 340,
-          padding: '14px 0',
-          borderRadius: 8,
-          background: 'linear-gradient(90deg, #5c6bc0 0%, #3949ab 100%)',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 18,
-          border: 'none',
-          cursor: 'pointer',
-          marginBottom: 8,
-          boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-          letterSpacing: '0.5px',
-        }}>
+      <form onSubmit={handleDecode} className="steg-form">
+        <label>Decode PNG Image</label>
+        <input type="file" accept="image/png" onChange={handleDecodeImageChange} className="steg-file-input" />
+        <button type="submit" disabled={decoding} className="steg-btn">
           {decoding ? "Decoding..." : "Decode Image"}
         </button>
         {decodedMessage && (
-          <div style={{ marginTop: 8, color: '#ffb300', fontWeight: 600, wordBreak: 'break-word', textAlign: 'center' }}>
-            Decoded Message: {decodedMessage}
-          </div>
+          <div className="steg-decoded-message">Decoded Message: {decodedMessage}</div>
         )}
       </form>
     </div>

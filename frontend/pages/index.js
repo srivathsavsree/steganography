@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import EncodeForm from '../components/EncodeForm';
 import AudioForm from '../components/AudioForm';
 import FileInImageForm from '../components/FileInImageForm';
+import VideoForm from '../components/VideoForm';
 
 const tabList = [
   { label: 'Image Steganography', value: 'image' },
@@ -110,10 +111,8 @@ export default function Home() {
         </div>
         <div style={{ minHeight: 260, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', width: '100%' }}>
           {tab === 'video' && (
-            <section style={{ width: '100%', color: '#b0b3c7', textAlign: 'center', fontSize: 20, fontWeight: 500 }}>
-              <div style={{ padding: 40 }}>
-                Video steganography coming soon...
-              </div>
+            <section style={{ width: '100%' }}>
+              <VideoForm />
             </section>
           )}
         </div>

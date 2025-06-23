@@ -26,7 +26,7 @@ const FileInImageForm = () => {
     const formData = new FormData();
     formData.append("image", image);
     formData.append("file", file);
-    const response = await fetch("http://localhost:8000/image-file/encode/image-file", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/image-file/encode/image-file`, {
       method: "POST",
       body: formData,
     });
@@ -50,7 +50,7 @@ const FileInImageForm = () => {
     setDecodedFileUrl("");
     const formData = new FormData();
     formData.append("image", image);
-    const response = await fetch("http://localhost:8000/image-file/decode/image-file", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/image-file/decode/image-file`, {
       method: "POST",
       body: formData,
     });
@@ -66,93 +66,26 @@ const FileInImageForm = () => {
 
   return (
     <div style={{ width: '100%' }}>
-      <form onSubmit={handleEncode} style={{
-        marginBottom: 28,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'rgba(44, 47, 80, 0.7)',
-        padding: 24,
-        borderRadius: 12,
-        boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-      }}>
-        <input type="file" accept="image/png" onChange={handleImageChange} style={{
-          marginBottom: 16,
-          background: '#23243a',
-          color: '#e3e6f3',
-          border: 'none',
-          fontSize: 16,
-        }} />
-        <input type="file" onChange={handleFileChange} style={{
-          marginBottom: 16,
-          background: '#23243a',
-          color: '#e3e6f3',
-          border: 'none',
-          fontSize: 16,
-        }} />
-        <button type="submit" disabled={loading} style={{
-          width: '100%',
-          maxWidth: 340,
-          padding: '14px 0',
-          borderRadius: 8,
-          background: 'linear-gradient(90deg, #5c6bc0 0%, #3949ab 100%)',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 18,
-          border: 'none',
-          cursor: 'pointer',
-          marginBottom: 8,
-          boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-          letterSpacing: '0.5px',
-        }}>
-          {loading ? "Encoding..." : "Hide File in Image"}
-        </button>
+      <div className="steg-section-title">File-in-Image Steganography</div>
+      <form onSubmit={handleEncode} className="steg-form">
+        <label>Upload PNG Image</label>
+        <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
+        <label>File to Hide</label>
+        <input type="file" onChange={handleFileChange} className="steg-file-input" />
+        <button type="submit" disabled={loading} className="steg-btn">{loading ? "Encoding..." : "Hide File in Image"}</button>
         {resultUrl && (
           <div style={{ marginTop: 8 }}>
-            <a href={resultUrl} download="encoded_with_file.png" style={{ color: '#ffb300', fontWeight: 600 }}>
-              Download Encoded Image
-            </a>
+            <a href={resultUrl} download="encoded_with_file.png" className="steg-result-link">Download Encoded Image</a>
           </div>
         )}
       </form>
-      <form onSubmit={handleDecode} style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'rgba(44, 47, 80, 0.7)',
-        padding: 24,
-        borderRadius: 12,
-        boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-      }}>
-        <input type="file" accept="image/png" onChange={handleImageChange} style={{
-          marginBottom: 16,
-          background: '#23243a',
-          color: '#e3e6f3',
-          border: 'none',
-          fontSize: 16,
-        }} />
-        <button type="submit" disabled={decoding} style={{
-          width: '100%',
-          maxWidth: 340,
-          padding: '14px 0',
-          borderRadius: 8,
-          background: 'linear-gradient(90deg, #5c6bc0 0%, #3949ab 100%)',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 18,
-          border: 'none',
-          cursor: 'pointer',
-          marginBottom: 8,
-          boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-          letterSpacing: '0.5px',
-        }}>
-          {decoding ? "Decoding..." : "Extract File from Image"}
-        </button>
+      <form onSubmit={handleDecode} className="steg-form">
+        <label>Decode PNG Image</label>
+        <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
+        <button type="submit" disabled={decoding} className="steg-btn">{decoding ? "Decoding..." : "Extract File from Image"}</button>
         {decodedFileUrl && (
           <div style={{ marginTop: 8 }}>
-            <a href={decodedFileUrl} download style={{ color: '#ffb300', fontWeight: 600 }}>
-              Download Extracted File
-            </a>
+            <a href={decodedFileUrl} download className="steg-result-link">Download Extracted File</a>
           </div>
         )}
       </form>

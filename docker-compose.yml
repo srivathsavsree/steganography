@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - AWS_REGION=${AWS_REGION}
+    # Remove volume mount for production
+    # volumes:
+    #   - ./backend:/app
+    restart: unless-stopped
+    # Removing healthcheck to fix startup issues
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    #   start_period: 10s
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    # Updated to remove depends_on health check
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    # Remove volume mount for production
+    # volumes:
+    #   - ./frontend:/app
+    restart: unless-stopped
+    # Removing healthcheck to fix startup issues
+    # healthcheck:
+    #   test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    #   start_period: 10s
+

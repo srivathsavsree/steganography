@@ -10,4 +10,7 @@ def encode_image(input_image_path: str, message: str, output_image_path: str) ->
 def decode_image(stego_image_path: str) -> str:
     image = Image.open(stego_image_path).convert("RGB")
     hidden_message = stepic.decode(image)
-    return hidden_message.decode()
+    if isinstance(hidden_message, bytes):
+        return hidden_message.decode('utf-8')
+    else:
+        return hidden_message

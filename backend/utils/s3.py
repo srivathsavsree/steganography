@@ -20,6 +20,6 @@ s3_client = boto3.client(
 def upload_file_to_s3(file_path: str, object_name: str = None) -> str:
     if object_name is None:
         object_name = f"stego/{uuid4()}.png"
-    s3_client.upload_file(file_path, AWS_S3_BUCKET, object_name, ExtraArgs={"ACL": "public-read", "ContentType": "image/png"})
+    s3_client.upload_file(file_path, AWS_S3_BUCKET, object_name, ExtraArgs={"ContentType": "image/png"})
     url = f"https://{AWS_S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{object_name}"
     return url

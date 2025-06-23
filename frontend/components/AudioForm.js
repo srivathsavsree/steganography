@@ -23,7 +23,7 @@ const AudioForm = () => {
     const formData = new FormData();
     formData.append("audio", audio);
     formData.append("message", message);
-    const response = await fetch("http://localhost:8000/audio/encode/audio", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/encode/audio`, {
       method: "POST",
       body: formData,
     });
@@ -47,7 +47,7 @@ const AudioForm = () => {
     setDecoded("");
     const formData = new FormData();
     formData.append("audio", audio);
-    const response = await fetch("http://localhost:8000/audio/decode/audio", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/decode/audio`, {
       method: "POST",
       body: formData,
     });
@@ -62,103 +62,25 @@ const AudioForm = () => {
 
   return (
     <div style={{ width: '100%' }}>
-      <form onSubmit={handleEncode} style={{
-        marginBottom: 28,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'rgba(44, 47, 80, 0.7)',
-        padding: 24,
-        borderRadius: 12,
-        boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-      }}>
-        <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} style={{
-          marginBottom: 16,
-          background: '#23243a',
-          color: '#e3e6f3',
-          border: 'none',
-          fontSize: 16,
-        }} />
-        <input
-          type="text"
-          placeholder="Enter message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          style={{
-            marginBottom: 16,
-            width: '100%',
-            maxWidth: 340,
-            padding: '12px 16px',
-            borderRadius: 8,
-            border: '1px solid #3949ab',
-            background: '#23243a',
-            color: '#e3e6f3',
-            fontSize: 16,
-            outline: 'none',
-          }}
-        />
-        <button type="submit" disabled={loading} style={{
-          width: '100%',
-          maxWidth: 340,
-          padding: '14px 0',
-          borderRadius: 8,
-          background: 'linear-gradient(90deg, #5c6bc0 0%, #3949ab 100%)',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 18,
-          border: 'none',
-          cursor: 'pointer',
-          marginBottom: 8,
-          boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-          letterSpacing: '0.5px',
-        }}>
-          {loading ? "Encoding..." : "Encode Audio"}
-        </button>
+      <div className="steg-section-title">Audio Steganography</div>
+      <form onSubmit={handleEncode} className="steg-form">
+        <label>Upload Audio File</label>
+        <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} className="steg-file-input" />
+        <label>Message to Hide</label>
+        <input type="text" placeholder="Enter message" value={message} onChange={(e) => setMessage(e.target.value)} className="steg-input" />
+        <button type="submit" disabled={loading} className="steg-btn">{loading ? "Encoding..." : "Encode Audio"}</button>
         {resultUrl && (
           <div style={{ marginTop: 8 }}>
-            <a href={resultUrl} download="encoded.wav" style={{ color: '#ffb300', fontWeight: 600 }}>
-              Download Encoded Audio
-            </a>
+            <a href={resultUrl} download="encoded.wav" className="steg-result-link">Download Encoded Audio</a>
           </div>
         )}
       </form>
-      <form onSubmit={handleDecode} style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'rgba(44, 47, 80, 0.7)',
-        padding: 24,
-        borderRadius: 12,
-        boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-      }}>
-        <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} style={{
-          marginBottom: 16,
-          background: '#23243a',
-          color: '#e3e6f3',
-          border: 'none',
-          fontSize: 16,
-        }} />
-        <button type="submit" disabled={decoding} style={{
-          width: '100%',
-          maxWidth: 340,
-          padding: '14px 0',
-          borderRadius: 8,
-          background: 'linear-gradient(90deg, #5c6bc0 0%, #3949ab 100%)',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 18,
-          border: 'none',
-          cursor: 'pointer',
-          marginBottom: 8,
-          boxShadow: '0 2px 8px 0 rgba(92,107,192,0.10)',
-          letterSpacing: '0.5px',
-        }}>
-          {decoding ? "Decoding..." : "Decode Audio"}
-        </button>
+      <form onSubmit={handleDecode} className="steg-form">
+        <label>Decode Audio File</label>
+        <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} className="steg-file-input" />
+        <button type="submit" disabled={decoding} className="steg-btn">{decoding ? "Decoding..." : "Decode Audio"}</button>
         {decoded && (
-          <div style={{ marginTop: 8, color: '#ffb300', fontWeight: 600, wordBreak: 'break-word', textAlign: 'center' }}>
-            Decoded Message: {decoded}
-          </div>
+          <div className="steg-decoded-message">Decoded Message: {decoded}</div>
         )}
       </form>
     </div>

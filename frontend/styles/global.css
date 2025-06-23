@@ -1,0 +1,105 @@
+body {
+  background: linear-gradient(135deg, #23243a 0%, #1a1b2e 100%);
+  color: #e3e6f3;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.steg-form {
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(44, 47, 80, 0.7);
+  padding: 32px 24px 24px 24px;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px 0 rgba(92,107,192,0.13);
+  max-width: 420px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.steg-form label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #b0b3c7;
+  align-self: flex-start;
+}
+
+.steg-input {
+  margin-bottom: 18px;
+  width: 100%;
+  max-width: 340px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #3949ab;
+  background: #23243a;
+  color: #e3e6f3;
+  font-size: 16px;
+  outline: none;
+  transition: border 0.2s;
+}
+.steg-input:focus {
+  border: 1.5px solid #ffb300;
+}
+
+.steg-file-input {
+  margin-bottom: 18px;
+  width: 100%;
+  max-width: 340px;
+  padding: 8px 0;
+  border-radius: 8px;
+  background: #23243a;
+  color: #e3e6f3;
+  border: none;
+  font-size: 16px;
+  outline: none;
+}
+
+.steg-btn {
+  width: 100%;
+  max-width: 340px;
+  padding: 14px 0;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #5c6bc0 0%, #3949ab 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px 0 rgba(92,107,192,0.10);
+  letter-spacing: 0.5px;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.steg-btn:hover {
+  background: linear-gradient(90deg, #3949ab 0%, #5c6bc0 100%);
+  box-shadow: 0 4px 16px 0 rgba(92,107,192,0.18);
+}
+
+.steg-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffb300;
+  margin-bottom: 18px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.steg-result-link {
+  color: #ffb300;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.steg-decoded-message {
+  margin-top: 8px;
+  color: #ffb300;
+  font-weight: 600;
+  word-break: break-word;
+  text-align: center;
+}
