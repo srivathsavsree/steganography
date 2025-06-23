@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pillow
+stepic
+python-multipart
+boto3
+python-dotenv
+pydub
+numpy

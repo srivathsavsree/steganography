@@ -1,0 +1,60 @@
+# Node modules
+frontend/node_modules/
+backend/node_modules/
+
+# Python cache
+backend/__pycache__/
+frontend/__pycache__/
+*.pyc
+
+# Environment files
+.env
+backend/.env
+frontend/.env
+*.env
+
+# Temp files and folders
+temp/
+backend/temp/
+frontend/temp/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# VSCode settings
+.vscode/
+
+# Log files
+*.log
+
+# Ignore Docker artifacts
+backend/*.pid
+
+# Ignore S3 credentials and sensitive files
+*.pem
+*.key
+
+# Ignore Python virtual environments
+venv/
+backend/venv/
+frontend/venv/
+
+# Ignore build output
+dist/
+build/
+
+# Ignore coverage reports
+coverage/
+*.cover
+
+# Ignore large files accidentally committed
+*.swp
+*.swo
+
+# Ignore Next.js build output
+frontend/.next/
+
+# Ignore LFS pointer files (if not using LFS)
+*.lfs
+node_modules/
