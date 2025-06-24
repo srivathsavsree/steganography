@@ -61,10 +61,9 @@ app.include_router(audio.router, prefix="/audio")
 app.include_router(image_file.router, prefix="/image-file")
 app.include_router(video.router, prefix="/video")
 
-# Print a message to help with debugging
-print("API Routes configured:")
-print("- /encode/image")
-print("- /decode/image")
-print("- /audio/encode, /audio/decode")
-print("- /image-file/encode, /image-file/decode")
-print("- /video/encode, /video/decode")
+# Print all registered routes for debugging
+print("\nAPI Routes registered:")
+for route in app.routes:
+    if hasattr(route, "methods") and hasattr(route, "path"):
+        methods = ", ".join(route.methods)
+        print(f"- {methods}: {route.path}")
