@@ -19,11 +19,10 @@ const VideoForm = () => {
       return;
     }
     setLoading(true);
-    setResultUrl("");
-    const formData = new FormData();
+    setResultUrl("");    const formData = new FormData();
     formData.append("video", video);
     formData.append("message", message);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/video/encode/video`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/video/encode`, {
       method: "POST",
       body: formData,
     });
@@ -44,10 +43,9 @@ const VideoForm = () => {
       return;
     }
     setDecoding(true);
-    setDecodedMessage("");
-    const formData = new FormData();
+    setDecodedMessage("");    const formData = new FormData();
     formData.append("video", video);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/video/decode/video`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/video/decode`, {
       method: "POST",
       body: formData,
     });

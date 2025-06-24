@@ -2,15 +2,19 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
 import uuid
 import os
+import mimetypes
 from stego.image_file import encode_image_with_file, decode_file_from_image
 
 router = APIRouter()
 
-@router.post("/encode/image-file")
+@router.post("/encode")
 async def encode_image_file_route(
     image: UploadFile = File(...),
     file: UploadFile = File(...)
 ):
+    # Ensure temp directory exists
+    os.makedirs("temp", exist_ok=True)
+    
     if image.content_type != "image/png":
         raise HTTPException(status_code=400, detail="Only PNG images supported.")
     input_image_path = f"temp/{uuid.uuid4()}.png"
@@ -26,10 +30,13 @@ async def encode_image_file_route(
         raise HTTPException(status_code=500, detail=f"Encoding failed: {str(e)}")
     return FileResponse(output_path, media_type="image/png", filename="encoded_with_file.png")
 
-@router.post("/decode/image-file")
+@router.post("/decode")
 async def decode_image_file_route(
     image: UploadFile = File(...)
 ):
+    # Ensure temp directory exists
+    os.makedirs("temp", exist_ok=True)
+    
     if image.content_type != "image/png":
         raise HTTPException(status_code=400, detail="Only PNG images supported.")
     input_image_path = f"temp/{uuid.uuid4()}.png"

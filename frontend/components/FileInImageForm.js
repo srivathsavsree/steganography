@@ -23,11 +23,10 @@ const FileInImageForm = () => {
       return;
     }
     setLoading(true);
-    setResultUrl("");
-    const formData = new FormData();
+    setResultUrl("");    const formData = new FormData();
     formData.append("image", image);
     formData.append("file", file);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/image-file/encode/image-file`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/image-file/encode`, {
       method: "POST",
       body: formData,
     });
@@ -48,10 +47,9 @@ const FileInImageForm = () => {
       return;
     }
     setDecoding(true);
-    setDecodedFileUrl("");
-    const formData = new FormData();
+    setDecodedFileUrl("");    const formData = new FormData();
     formData.append("image", image);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/image-file/decode/image-file`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/image-file/decode`, {
       method: "POST",
       body: formData,
     });
