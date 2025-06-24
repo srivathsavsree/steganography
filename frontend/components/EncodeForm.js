@@ -22,8 +22,7 @@ const EncodeForm = () => {
     if (!image || !message) {
       alert("Please select an image and enter a message.");
       return;
-    }
-    setLoading(true);
+    }    setLoading(true);
     setResultUrl("");
     const formData = new FormData();
     formData.append("image", image);
@@ -46,8 +45,7 @@ const EncodeForm = () => {
     if (!decodeImage) {
       alert("Please select a PNG image to decode.");
       return;
-    }
-    setDecoding(true);
+    }    setDecoding(true);
     setDecodedMessage("");
     const formData = new FormData();
     formData.append("image", decodeImage);

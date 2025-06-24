@@ -23,7 +23,7 @@ const AudioForm = () => {
     const formData = new FormData();
     formData.append("audio", audio);
     formData.append("message", message);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/encode/audio`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/encode`, {
       method: "POST",
       body: formData,
     });
@@ -47,7 +47,7 @@ const AudioForm = () => {
     setDecoded("");
     const formData = new FormData();
     formData.append("audio", audio);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/decode/audio`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/decode`, {
       method: "POST",
       body: formData,
     });
