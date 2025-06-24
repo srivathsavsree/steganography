@@ -9,6 +9,14 @@ A full-stack web application for hiding and retrieving data within media files (
 - **File-in-Image Steganography**: Embed any file within a PNG image
 - **Video Steganography**: Hide messages within video files
 
+## Security Note
+
+This application requires AWS credentials for S3 storage functionality. Never commit these credentials to your repository. Instead:
+
+1. Use `.env` files locally that are excluded from git
+2. Set environment variables in your deployment platform (Render.com)
+3. See `DEPLOYMENT.md` for secure deployment instructions
+
 ## Technology Stack
 
 - **Frontend**: Next.js (React)

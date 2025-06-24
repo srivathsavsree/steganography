@@ -6,9 +6,9 @@ services:
     rootDir: backend
     envVars:
       - key: AWS_ACCESS_KEY_ID
-        value: AKIAUNN4UW65GP7Z2ZHU
+        sync: false  # Set this manually in Render dashboard
       - key: AWS_SECRET_ACCESS_KEY
-        value: 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
+        sync: false  # Set this manually in Render dashboard
       - key: AWS_S3_BUCKET_NAME
         value: steganography001
       - key: AWS_S3_REGION
