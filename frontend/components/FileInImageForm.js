@@ -11,6 +11,7 @@ const FileInImageForm = () => {
   const handleImageChange = (e) => {
     setImage(e.target.files[0]);
   };
+  
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -65,31 +66,50 @@ const FileInImageForm = () => {
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      <div className="steg-section-title">File-in-Image Steganography</div>
-      <form onSubmit={handleEncode} className="steg-form">
-        <label>Upload PNG Image</label>
-        <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
-        <label>File to Hide</label>
-        <input type="file" onChange={handleFileChange} className="steg-file-input" />
-        <button type="submit" disabled={loading} className="steg-btn">{loading ? "Encoding..." : "Hide File in Image"}</button>
-        {resultUrl && (
-          <div style={{ marginTop: 8 }}>
-            <a href={resultUrl} download="encoded_with_file.png" className="steg-result-link">Download Encoded Image</a>
-          </div>
-        )}
-      </form>
-      <form onSubmit={handleDecode} className="steg-form">
-        <label>Decode PNG Image</label>
-        <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
-        <button type="submit" disabled={decoding} className="steg-btn">{decoding ? "Decoding..." : "Extract File from Image"}</button>
-        {decodedFileUrl && (
-          <div style={{ marginTop: 8 }}>
-            <a href={decodedFileUrl} download className="steg-result-link">Download Extracted File</a>
-          </div>
-        )}
-      </form>
-    </div>
+    <>
+      <div className="steg-form">
+        <div className="steg-section-title">Hide File in Image</div>
+        <form onSubmit={handleEncode}>
+          <label>Upload PNG Image</label>
+          <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
+          
+          <label>File to Hide</label>
+          <input type="file" onChange={handleFileChange} className="steg-file-input" />
+          
+          <button type="submit" disabled={loading} className="steg-btn">
+            {loading ? "Encoding..." : "Hide File in Image"}
+          </button>
+          
+          {resultUrl && (
+            <div style={{ marginTop: '1rem' }}>
+              <a href={resultUrl} download="encoded_with_file.png" className="steg-result-link">
+                Download Encoded Image
+              </a>
+            </div>
+          )}
+        </form>
+      </div>
+      
+      <div className="steg-form">
+        <div className="steg-section-title">Extract Hidden File</div>
+        <form onSubmit={handleDecode}>
+          <label>Upload Encoded PNG Image</label>
+          <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
+          
+          <button type="submit" disabled={decoding} className="steg-btn">
+            {decoding ? "Extracting..." : "Extract File from Image"}
+          </button>
+          
+          {decodedFileUrl && (
+            <div style={{ marginTop: '1rem' }}>
+              <a href={decodedFileUrl} download className="steg-result-link">
+                Download Extracted File
+              </a>
+            </div>
+          )}
+        </form>
+      </div>
+    </>
   );
 };
 

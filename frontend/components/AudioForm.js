@@ -61,29 +61,48 @@ const AudioForm = () => {
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      <div className="steg-section-title">Audio Steganography</div>
-      <form onSubmit={handleEncode} className="steg-form">
-        <label>Upload Audio File</label>
-        <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} className="steg-file-input" />
-        <label>Message to Hide</label>
-        <input type="text" placeholder="Enter message" value={message} onChange={(e) => setMessage(e.target.value)} className="steg-input" />
-        <button type="submit" disabled={loading} className="steg-btn">{loading ? "Encoding..." : "Encode Audio"}</button>
-        {resultUrl && (
-          <div style={{ marginTop: 8 }}>
-            <a href={resultUrl} download="encoded.wav" className="steg-result-link">Download Encoded Audio</a>
-          </div>
-        )}
-      </form>
-      <form onSubmit={handleDecode} className="steg-form">
-        <label>Decode Audio File</label>
-        <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} className="steg-file-input" />
-        <button type="submit" disabled={decoding} className="steg-btn">{decoding ? "Decoding..." : "Decode Audio"}</button>
-        {decoded && (
-          <div className="steg-decoded-message">Decoded Message: {decoded}</div>
-        )}
-      </form>
-    </div>
+    <>
+      <div className="steg-form">
+        <div className="steg-section-title">Hide Message in Audio</div>
+        <form onSubmit={handleEncode}>
+          <label>Upload Audio File</label>
+          <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} className="steg-file-input" />
+          
+          <label>Message to Hide</label>
+          <input type="text" placeholder="Enter your secret message" value={message} onChange={(e) => setMessage(e.target.value)} className="steg-input" />
+          
+          <button type="submit" disabled={loading} className="steg-btn">
+            {loading ? "Encoding..." : "Encode Audio"}
+          </button>
+          
+          {resultUrl && (
+            <div style={{ marginTop: '1rem' }}>
+              <a href={resultUrl} download="encoded.wav" className="steg-result-link">
+                Download Encoded Audio
+              </a>
+            </div>
+          )}
+        </form>
+      </div>
+      
+      <div className="steg-form">
+        <div className="steg-section-title">Decode Hidden Message</div>
+        <form onSubmit={handleDecode}>
+          <label>Upload Encoded Audio File</label>
+          <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} className="steg-file-input" />
+          
+          <button type="submit" disabled={decoding} className="steg-btn">
+            {decoding ? "Decoding..." : "Decode Audio"}
+          </button>
+          
+          {decoded && (
+            <div className="steg-decoded-message">
+              <strong>Decoded Message:</strong> {decoded}
+            </div>
+          )}
+        </form>
+      </div>
+    </>
   );
 };
 

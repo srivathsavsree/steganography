@@ -13,6 +13,10 @@ const EncodeForm = () => {
     setImage(e.target.files[0]);
   };
 
+  const handleDecodeImageChange = (e) => {
+    setDecodeImage(e.target.files[0]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!image || !message) {
@@ -35,10 +39,6 @@ const EncodeForm = () => {
       alert("Encoding failed.");
     }
     setLoading(false);
-  };
-
-  const handleDecodeImageChange = (e) => {
-    setDecodeImage(e.target.files[0]);
   };
 
   const handleDecode = async (e) => {
@@ -79,40 +79,51 @@ const EncodeForm = () => {
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      <div className="steg-section-title">Image Steganography</div>
-      <form onSubmit={handleSubmit} className="steg-form">
-        <label>Upload PNG Image</label>
-        <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
-        <label>Message to Hide</label>
-        <input
-          type="text"
-          placeholder="Enter message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="steg-input"
-        />
-        <button type="submit" disabled={loading} className="steg-btn">
-          {loading ? "Encoding..." : "Encode Image"}
-        </button>
-        {resultUrl && (
-          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <a href={resultUrl} target="_blank" rel="noopener noreferrer" className="steg-result-link">View Encoded Image</a>
-            <button type="button" onClick={handleDownload} className="steg-btn">Download Image</button>
-          </div>
-        )}
-      </form>
-      <form onSubmit={handleDecode} className="steg-form">
-        <label>Decode PNG Image</label>
-        <input type="file" accept="image/png" onChange={handleDecodeImageChange} className="steg-file-input" />
-        <button type="submit" disabled={decoding} className="steg-btn">
-          {decoding ? "Decoding..." : "Decode Image"}
-        </button>
-        {decodedMessage && (
-          <div className="steg-decoded-message">Decoded Message: {decodedMessage}</div>
-        )}
-      </form>
-    </div>
+    <>
+      <div className="steg-form">
+        <div className="steg-section-title">Hide Message in Image</div>
+        <form onSubmit={handleSubmit}>
+          <label>Upload PNG Image</label>
+          <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
+          
+          <label>Message to Hide</label>
+          <input type="text" placeholder="Enter your secret message" value={message} onChange={(e) => setMessage(e.target.value)} className="steg-input" />
+          
+          <button type="submit" disabled={loading} className="steg-btn">
+            {loading ? "Encoding..." : "Encode Image"}
+          </button>
+          
+          {resultUrl && (
+            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <a href={resultUrl} target="_blank" rel="noopener noreferrer" className="steg-result-link">
+                View Encoded Image
+              </a>
+              <button type="button" onClick={handleDownload} className="steg-btn">
+                Download Image
+              </button>
+            </div>
+          )}
+        </form>
+      </div>
+      
+      <div className="steg-form">
+        <div className="steg-section-title">Decode Hidden Message</div>
+        <form onSubmit={handleDecode}>
+          <label>Upload Encoded PNG Image</label>
+          <input type="file" accept="image/png" onChange={handleDecodeImageChange} className="steg-file-input" />
+          
+          <button type="submit" disabled={decoding} className="steg-btn">
+            {decoding ? "Decoding..." : "Decode Image"}
+          </button>
+          
+          {decodedMessage && (
+            <div className="steg-decoded-message">
+              <strong>Decoded Message:</strong> {decodedMessage}
+            </div>
+          )}
+        </form>
+      </div>
+    </>
   );
 };
 

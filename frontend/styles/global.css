@@ -1,105 +1,171 @@
-body {
-  background: linear-gradient(135deg, #23243a 0%, #1a1b2e 100%);
-  color: #e3e6f3;
-  font-family: 'Segoe UI', Arial, sans-serif;
+/* === GLOBAL RESET === */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
-.steg-form {
-  margin-bottom: 28px;
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  color: #ffffff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === CENTERING === */
+main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(44, 47, 80, 0.7);
-  padding: 32px 24px 24px 24px;
-  border-radius: 16px;
-  box-shadow: 0 2px 16px 0 rgba(92,107,192,0.13);
-  max-width: 420px;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
+  justify-content: center;
+  text-align: center;
+  min-height: 100vh;
 }
 
-.steg-form label {
+/* === TITLE === */
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+/* === TAB BUTTONS === */
+.tab-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.tab-button {
+  padding: 0.75rem 1.5rem;
+  background: #1f2937;
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
   font-weight: 600;
-  margin-bottom: 8px;
-  color: #b0b3c7;
-  align-self: flex-start;
-}
-
-.steg-input {
-  margin-bottom: 18px;
-  width: 100%;
-  max-width: 340px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #3949ab;
-  background: #23243a;
-  color: #e3e6f3;
-  font-size: 16px;
-  outline: none;
-  transition: border 0.2s;
-}
-.steg-input:focus {
-  border: 1.5px solid #ffb300;
-}
-
-.steg-file-input {
-  margin-bottom: 18px;
-  width: 100%;
-  max-width: 340px;
-  padding: 8px 0;
-  border-radius: 8px;
-  background: #23243a;
-  color: #e3e6f3;
-  border: none;
-  font-size: 16px;
-  outline: none;
-}
-
-.steg-btn {
-  width: 100%;
-  max-width: 340px;
-  padding: 14px 0;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #5c6bc0 0%, #3949ab 100%);
-  color: #fff;
-  font-weight: 700;
-  font-size: 18px;
-  border: none;
+  font-size: 1rem;
   cursor: pointer;
-  margin-bottom: 8px;
-  box-shadow: 0 2px 8px 0 rgba(92,107,192,0.10);
-  letter-spacing: 0.5px;
-  transition: background 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
 }
-.steg-btn:hover {
-  background: linear-gradient(90deg, #3949ab 0%, #5c6bc0 100%);
-  box-shadow: 0 4px 16px 0 rgba(92,107,192,0.18);
+
+.tab-button:hover {
+  background: #2563eb;
+  box-shadow: 0 0 10px #2563eb88;
+}
+
+.tab-button.active {
+  background: #3b82f6;
+  color: #fff;
+  box-shadow: 0 0 12px #3b82f6aa;
+}
+
+/* === CONTENT CONTAINER === */
+.content-container {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 800px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* === FORM ELEMENTS === */
+.steg-form {
+  margin-bottom: 2rem;
+  background: rgba(31, 41, 55, 0.5);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .steg-section-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #ffb300;
-  margin-bottom: 18px;
-  text-align: center;
-  letter-spacing: 0.5px;
+  font-size: 1.5rem;
+  color: #3b82f6;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.steg-input, .steg-file-input {
+  background: rgba(17, 24, 39, 0.8);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  color: white;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.steg-file-input {
+  padding: 0.5rem;
+}
+
+.steg-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.steg-btn {
+  background: linear-gradient(45deg, #2563eb, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.steg-btn:hover {
+  background: linear-gradient(45deg, #1d4ed8, #2563eb);
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
 }
 
 .steg-result-link {
-  color: #ffb300;
-  font-weight: 600;
-  margin-bottom: 8px;
+  color: #93c5fd;
   text-decoration: underline;
-  word-break: break-all;
+  font-weight: 500;
 }
 
 .steg-decoded-message {
-  margin-top: 8px;
-  color: #ffb300;
-  font-weight: 600;
+  background: rgba(17, 24, 39, 0.8);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  color: #93c5fd;
+  margin-top: 1rem;
   word-break: break-word;
-  text-align: center;
+}
+
+label {
+  color: #d1d5db;
+  font-weight: 500;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  .tab-button {
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+  }
+  
+  .content-container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .steg-form {
+    padding: 1rem;
+  }
 }

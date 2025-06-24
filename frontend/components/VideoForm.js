@@ -61,41 +61,48 @@ const VideoForm = () => {
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      <div className="steg-section-title">Video Steganography</div>
-      <form onSubmit={handleEncode} className="steg-form">
-        <label>Upload Video File</label>
-        <input type="file" accept="video/*" onChange={handleVideoChange} className="steg-file-input" />
-        <label>Message to Hide</label>
-        <input
-          type="text"
-          placeholder="Enter message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="steg-input"
-        />
-        <button type="submit" disabled={loading} className="steg-btn">
-          {loading ? "Encoding..." : "Encode Video"}
-        </button>
-        {resultUrl && (
-          <div style={{ marginTop: 8 }}>
-            <a href={resultUrl} download="encoded_video.mp4" className="steg-result-link">
-              Download Encoded Video
-            </a>
-          </div>
-        )}
-      </form>
-      <form onSubmit={handleDecode} className="steg-form">
-        <label>Decode Video File</label>
-        <input type="file" accept="video/*" onChange={handleVideoChange} className="steg-file-input" />
-        <button type="submit" disabled={decoding} className="steg-btn">
-          {decoding ? "Decoding..." : "Decode Video"}
-        </button>
-        {decodedMessage && (
-          <div className="steg-decoded-message">Decoded Message: {decodedMessage}</div>
-        )}
-      </form>
-    </div>
+    <>
+      <div className="steg-form">
+        <div className="steg-section-title">Hide Message in Video</div>
+        <form onSubmit={handleEncode}>
+          <label>Upload Video File</label>
+          <input type="file" accept="video/*" onChange={handleVideoChange} className="steg-file-input" />
+          
+          <label>Message to Hide</label>
+          <input type="text" placeholder="Enter your secret message" value={message} onChange={(e) => setMessage(e.target.value)} className="steg-input" />
+          
+          <button type="submit" disabled={loading} className="steg-btn">
+            {loading ? "Encoding..." : "Encode Video"}
+          </button>
+          
+          {resultUrl && (
+            <div style={{ marginTop: '1rem' }}>
+              <a href={resultUrl} download="encoded_video.mp4" className="steg-result-link">
+                Download Encoded Video
+              </a>
+            </div>
+          )}
+        </form>
+      </div>
+      
+      <div className="steg-form">
+        <div className="steg-section-title">Decode Hidden Message</div>
+        <form onSubmit={handleDecode}>
+          <label>Upload Encoded Video File</label>
+          <input type="file" accept="video/*" onChange={handleVideoChange} className="steg-file-input" />
+          
+          <button type="submit" disabled={decoding} className="steg-btn">
+            {decoding ? "Decoding..." : "Decode Video"}
+          </button>
+          
+          {decodedMessage && (
+            <div className="steg-decoded-message">
+              <strong>Decoded Message:</strong> {decodedMessage}
+            </div>
+          )}
+        </form>
+      </div>
+    </>
   );
 };
 
