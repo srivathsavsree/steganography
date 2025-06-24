@@ -1,3 +1,12 @@
+from fastapi import APIRouter, UploadFile, Form, File
+from fastapi.responses import FileResponse
+import uuid
+import os
+from stego.image import encode_image
+from utils.s3 import upload_file_to_s3
+
+router = APIRouter()  # ✅ THIS LINE IS REQUIRED
+
 @router.post("/image")
 async def encode_image_route(
     image: UploadFile = File(...),
@@ -7,7 +16,6 @@ async def encode_image_route(
         input_path = f"temp/{uuid.uuid4()}.png"
         output_path = f"temp/{uuid.uuid4()}_encoded.png"
 
-        # Ensure temp directory exists
         os.makedirs("temp", exist_ok=True)
 
         with open(input_path, "wb") as f:
