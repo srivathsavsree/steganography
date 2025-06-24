@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "postinstall": "node -e \"const fs=require('fs'); if(!fs.existsSync('.env.production')) fs.writeFileSync('.env.production', 'NEXT_PUBLIC_API_URL=https://steganography-api.onrender.com\\n')\""
   },
   "dependencies": {
     "next": "14.2.3",

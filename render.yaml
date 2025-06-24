@@ -1,0 +1,25 @@
+services:
+  # Backend API Service
+  - type: web
+    name: steganography-api
+    runtime: docker
+    rootDir: backend
+    envVars:
+      - key: AWS_ACCESS_KEY_ID
+        value: AKIAUNN4UW65GP7Z2ZHU
+      - key: AWS_SECRET_ACCESS_KEY
+        value: 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
+      - key: AWS_S3_BUCKET_NAME
+        value: steganography001
+      - key: AWS_S3_REGION
+        value: us-east-1
+    healthCheckPath: /docs
+    
+  # Frontend Web Application
+  - type: web
+    name: steganography-frontend
+    runtime: docker
+    rootDir: frontend
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://steganography-api.onrender.com
