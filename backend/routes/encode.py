@@ -8,13 +8,16 @@ from utils.s3 import upload_file_to_s3
 
 router = APIRouter()
 
-@router.post("/encode/image")
+@router.post("/image")
 async def encode_image_route(
     image: UploadFile = File(...),
     message: str = Form(...)
 ):
     input_path = f"temp/{uuid.uuid4()}.png"
     output_path = f"temp/{uuid.uuid4()}_encoded.png"
+
+    # Ensure temp directory exists
+    os.makedirs("temp", exist_ok=True)
 
     with open(input_path, "wb") as f:
         f.write(await image.read())

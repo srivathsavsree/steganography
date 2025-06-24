@@ -2,12 +2,17 @@
 from fastapi import APIRouter, UploadFile, File
 from stego.image import decode_image
 import uuid
+import os
 
 router = APIRouter()
 
-@router.post("/decode/image")
+@router.post("/image")
 async def decode_image_route(image: UploadFile = File(...)):
     input_path = f"temp/{uuid.uuid4()}.png"
+    
+    # Ensure temp directory exists
+    os.makedirs("temp", exist_ok=True)
+    
     with open(input_path, "wb") as f:
         f.write(await image.read())
 

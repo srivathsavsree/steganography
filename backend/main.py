@@ -55,8 +55,16 @@ async def info_page():
         html_content = f.read()
     return HTMLResponse(content=html_content)
 
-app.include_router(encode.router)
-app.include_router(decode.router)  # Removed prefix to match /decode/image
+app.include_router(encode.router, prefix="/encode")
+app.include_router(decode.router, prefix="/decode")  # Added prefix to be consistent
 app.include_router(audio.router, prefix="/audio")
 app.include_router(image_file.router, prefix="/image-file")
 app.include_router(video.router, prefix="/video")
+
+# Print a message to help with debugging
+print("API Routes configured:")
+print("- /encode/image")
+print("- /decode/image")
+print("- /audio/encode, /audio/decode")
+print("- /image-file/encode, /image-file/decode")
+print("- /video/encode, /video/decode")
