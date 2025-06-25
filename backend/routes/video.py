@@ -1,6 +1,8 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from fastapi.responses import FileResponse, JSONResponse
 import uuid
 import os
+import traceback
 from utils.s3 import upload_file_to_s3
 from stego.video import encode_video, decode_video
 
@@ -9,46 +11,216 @@ router = APIRouter()
 @router.post("/encode")
 async def encode_video_route(
     video: UploadFile = File(...),
-    message: str = Form(...)  # Accepting text input from form
+    message: str = Form(...)
 ):
-    os.makedirs("temp", exist_ok=True)
-
-    input_ext = os.path.splitext(video.filename)[1] or ".mp4"
-    input_path = f"temp/{uuid.uuid4()}{input_ext}"
-    output_path = f"temp/{uuid.uuid4()}_encoded{input_ext}"
-
     try:
-        # Save uploaded video to disk
-        with open(input_path, "wb") as f:
-            f.write(await video.read())
+        # Log request info
+        print(f"[INFO] Encode video request received for file: {video.filename}, content_type: {video.content_type}")
+        print(f"[INFO] Message length: {len(message)}")
+        
+        os.makedirs("temp", exist_ok=True)
 
-        # Call your encoding function
-        encode_video(input_path, message, output_path)
+        # Validate video content type
+        if not video.content_type.startswith("video/"):
+            print(f"[WARNING] Invalid content type: {video.content_type}")
+            return JSONResponse(
+                status_code=400,
+                content={"detail": f"Only video files are supported, received {video.content_type}"}
+            )
 
-        # Upload encoded video to S3 and return the link
-        s3_url = upload_file_to_s3(output_path)
-        return {"url": s3_url}
+        input_ext = os.path.splitext(video.filename)[1] or ".mp4"
+        input_path = f"temp/{uuid.uuid4()}{input_ext}"
+        output_path = f"temp/{uuid.uuid4()}_encoded{input_ext}"
 
+        try:
+            # Read and save the file
+            file_content = await video.read()
+            print(f"[INFO] Read {len(file_content)} bytes from uploaded video")
+            
+            with open(input_path, "wb") as f:
+                f.write(file_content)
+                
+            print(f"[INFO] Saved video to {input_path}, file size: {os.path.getsize(input_path)} bytes")
+        except Exception as read_error:
+            print(f"[ERROR] File read/write error: {read_error}")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Error reading or writing video file: {str(read_error)}"}
+            )
+
+        try:
+            print(f"[INFO] Encoding message into video: {input_path}")
+            encode_video(input_path, message, output_path)
+            print(f"[INFO] Successfully encoded message, output file size: {os.path.getsize(output_path)} bytes")
+        except Exception as encode_error:
+            print(f"[ERROR] Encoding algorithm failed: {encode_error}")
+            traceback.print_exc()
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Error in encoding algorithm: {str(encode_error)}"}
+            )
+
+        try:
+            print(f"[INFO] Uploading encoded video to S3: {output_path}")
+            
+            # Check if the output file exists
+            if not os.path.exists(output_path):
+                print(f"[ERROR] Output file does not exist: {output_path}")
+                return JSONResponse(
+                    status_code=500,
+                    content={"detail": f"Encoded output file does not exist: {output_path}"}
+                )
+                
+            # Check if the output file is empty
+            if os.path.getsize(output_path) == 0:
+                print(f"[ERROR] Output file is empty: {output_path}")
+                return JSONResponse(
+                    status_code=500,
+                    content={"detail": f"Encoded output file is empty: {output_path}"}
+                )
+                
+            # Upload to S3
+            try:
+                s3_url = upload_file_to_s3(output_path)
+                print(f"[INFO] Successfully uploaded to S3, URL: {s3_url}")
+                return {"url": s3_url}
+            except Exception as s3_error:
+                print(f"[ERROR] S3 upload failed: {s3_error}")
+                print(f"[ERROR] Error type: {type(s3_error)}")
+                traceback.print_exc()
+                
+                # As a fallback, try to serve the file directly
+                print(f"[INFO] Trying to serve the file directly")
+                return FileResponse(
+                    output_path,
+                    media_type=f"video/{input_ext.lstrip('.')}",
+                    filename=f"encoded{input_ext}"
+                )
+        except Exception as s3_error:
+            print(f"[ERROR] S3 upload failed: {s3_error}")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Error uploading to S3: {str(s3_error)}"}
+            )
+            
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Encoding failed: {str(e)}")
+        print(f"[ERROR] Unexpected error in encode video route: {e}")
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Encoding failed: {str(e)}"}
+        )
 
 @router.post("/decode")
 async def decode_video_route(
     video: UploadFile = File(...)
 ):
-    os.makedirs("temp", exist_ok=True)
-
-    input_ext = os.path.splitext(video.filename)[1] or ".mp4"
-    input_path = f"temp/{uuid.uuid4()}{input_ext}"
-
     try:
-        # Save uploaded video to disk
-        with open(input_path, "wb") as f:
-            f.write(await video.read())
+        # Log request info
+        print(f"[INFO] Decode video request received for file: {video.filename}, content_type: {video.content_type}")
+        
+        os.makedirs("temp", exist_ok=True)
 
-        # Decode the hidden message from the video
-        message = decode_video(input_path)
-        return {"message": message}
+        # Validate video content type
+        if not video.content_type.startswith("video/"):
+            print(f"[WARNING] Invalid content type: {video.content_type}")
+            return JSONResponse(
+                status_code=400,
+                content={"detail": f"Only video files are supported, received {video.content_type}"}
+            )
 
+        input_ext = os.path.splitext(video.filename)[1] or ".mp4"
+        input_path = f"temp/{uuid.uuid4()}{input_ext}"
+
+        try:
+            # Read and save the file
+            file_content = await video.read()
+            print(f"[INFO] Read {len(file_content)} bytes from uploaded video")
+            
+            with open(input_path, "wb") as f:
+                f.write(file_content)
+                
+            print(f"[INFO] Saved video to {input_path}, file size: {os.path.getsize(input_path)} bytes")
+        except Exception as read_error:
+            print(f"[ERROR] File read/write error: {read_error}")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Error reading or writing video file: {str(read_error)}"}
+            )
+
+        try:
+            print(f"[INFO] Decoding message from video: {input_path}")
+            message = decode_video(input_path)
+            print(f"[INFO] Successfully decoded message from video")
+            return JSONResponse({"message": message})
+        except Exception as decode_error:
+            print(f"[ERROR] Decoding algorithm failed: {decode_error}")
+            traceback.print_exc()
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Error in decoding algorithm: {str(decode_error)}"}
+            )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Decoding failed: {str(e)}")
+        print(f"[ERROR] Unexpected error in decode video route: {e}")
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Decoding failed: {str(e)}"}
+        )
+
+@router.post("/encode/direct")
+async def encode_video_direct(
+    video: UploadFile = File(...),
+    message: str = Form(...)
+):
+    """
+    Encode a video and serve it directly without S3 upload.
+    This endpoint is a fallback for when S3 is not available.
+    """
+    try:
+        # Log request info
+        print(f"[INFO] Direct encode video request received for file: {video.filename}, content_type: {video.content_type}")
+        print(f"[INFO] Message length: {len(message)}")
+        
+        os.makedirs("temp", exist_ok=True)
+
+        # Validate video content type
+        if not video.content_type.startswith("video/"):
+            print(f"[WARNING] Invalid content type: {video.content_type}")
+            return JSONResponse(
+                status_code=400,
+                content={"detail": f"Only video files are supported, received {video.content_type}"}
+            )
+
+        input_ext = os.path.splitext(video.filename)[1] or ".mp4"
+        input_path = f"temp/{uuid.uuid4()}{input_ext}"
+        output_path = f"temp/{uuid.uuid4()}_encoded{input_ext}"
+
+        # Read and save the file
+        file_content = await video.read()
+        print(f"[INFO] Read {len(file_content)} bytes from uploaded video")
+        
+        with open(input_path, "wb") as f:
+            f.write(file_content)
+            
+        print(f"[INFO] Saved video to {input_path}, file size: {os.path.getsize(input_path)} bytes")
+
+        # Encode the message
+        print(f"[INFO] Encoding message into video: {input_path}")
+        encode_video(input_path, message, output_path)
+        print(f"[INFO] Successfully encoded message, output file size: {os.path.getsize(output_path)} bytes")
+
+        # Return the file directly
+        return FileResponse(
+            output_path,
+            media_type=f"video/{input_ext.lstrip('.')}",
+            filename=f"encoded{input_ext}"
+        )
+            
+    except Exception as e:
+        print(f"[ERROR] Unexpected error in direct encode video route: {e}")
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Direct encoding failed: {str(e)}"}
+        )
