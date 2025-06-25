@@ -1,8 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
-from fastapi.responses import FileResponse
 import uuid
 import os
-import mimetypes
 from utils.s3 import upload_file_to_s3
 from stego.video import encode_video, decode_video
 
@@ -11,7 +9,7 @@ router = APIRouter()
 @router.post("/encode")
 async def encode_video_route(
     video: UploadFile = File(...),
-    message: str = Form(...)
+    message: str = Form(...)  # Accepting text input from form
 ):
     os.makedirs("temp", exist_ok=True)
 
@@ -20,11 +18,14 @@ async def encode_video_route(
     output_path = f"temp/{uuid.uuid4()}_encoded{input_ext}"
 
     try:
+        # Save uploaded video to disk
         with open(input_path, "wb") as f:
             f.write(await video.read())
 
+        # Call your encoding function
         encode_video(input_path, message, output_path)
 
+        # Upload encoded video to S3 and return the link
         s3_url = upload_file_to_s3(output_path)
         return {"url": s3_url}
 
@@ -41,9 +42,11 @@ async def decode_video_route(
     input_path = f"temp/{uuid.uuid4()}{input_ext}"
 
     try:
+        # Save uploaded video to disk
         with open(input_path, "wb") as f:
             f.write(await video.read())
 
+        # Decode the hidden message from the video
         message = decode_video(input_path)
         return {"message": message}
 
