@@ -66,9 +66,13 @@ const AudioForm = () => {
     const file = e.target.files[0];
     
     if (file) {
-      // Validate file type
-      if (!file.type.includes("audio/")) {
-        alert('Please select an audio file. Other file types are not supported.');
+      // Validate file type - check both MIME type and extension
+      const validExtensions = ['.wav', '.mp3'];
+      const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+      const isAudioType = file.type.includes("audio/") || validExtensions.includes(fileExt);
+      
+      if (!isAudioType) {
+        alert('Please select a WAV or MP3 audio file. Other file types are not supported.');
         e.target.value = ''; // Clear the file input
         return;
       }
@@ -81,7 +85,7 @@ const AudioForm = () => {
       }
       
       setAudio(file);
-      console.log("Audio selected:", file.name, "Type:", file.type, "Size:", file.size);
+      console.log("Audio selected:", file.name, "Type:", file.type, "Size:", file.size, "Extension:", fileExt);
     }
   };
 
@@ -283,7 +287,7 @@ const AudioForm = () => {
         <div className="steg-section-title">Hide Message in Audio</div>
         <form onSubmit={handleEncode}>
           <label>Upload Audio File</label>
-          <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} className="steg-file-input" />
+          <input type="file" accept="audio/*,.wav,.mp3" onChange={handleAudioChange} className="steg-file-input" />
           
           <label>Message to Hide</label>
           <textarea 
@@ -311,7 +315,7 @@ const AudioForm = () => {
         <div className="steg-section-title">Decode Hidden Message</div>
         <form onSubmit={handleDecode}>
           <label>Upload Encoded Audio</label>
-          <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} className="steg-file-input" />
+          <input type="file" accept="audio/*,.wav,.mp3" onChange={handleAudioChange} className="steg-file-input" />
           
           <button type="submit" disabled={decoding} className="steg-btn">
             {decoding ? "Decoding..." : "Extract Hidden Message"}
