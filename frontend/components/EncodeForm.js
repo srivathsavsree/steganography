@@ -39,27 +39,36 @@ const EncodeForm = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setResultUrl(data.url);
-
-        // Auto-download the file
-        const downloadAuto = async () => {
-          const response = await fetch(data.url);
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'encoded.png';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(url);
-        };
-        downloadAuto();
-
+        if (data && data.url) {
+          setResultUrl(data.url);
+          
+          // Auto-download the file
+          try {
+            const downloadResponse = await fetch(data.url);
+            if (downloadResponse.ok) {
+              const blob = await downloadResponse.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'encoded.png';
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(url);
+            } else {
+              console.error("Failed to download encoded image");
+            }
+          } catch (downloadErr) {
+            console.error("Error during auto-download:", downloadErr);
+          }
+        } else {
+          alert("Invalid response from server.");
+        }
       } else {
         alert("Encoding failed.");
       }
     } catch (err) {
+      console.error("Encoding error:", err);
       alert("Something went wrong while encoding.");
     }
 
@@ -87,11 +96,21 @@ const EncodeForm = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setDecodedMessage(data.message);
+        if (data && data.message) {
+          setDecodedMessage(data.message);
+        } else {
+          alert("No message found in the image.");
+        }
       } else {
-        alert("Decoding failed.");
+        const errorData = await response.json().catch(() => null);
+        if (errorData && errorData.detail) {
+          alert(`Decoding failed: ${errorData.detail}`);
+        } else {
+          alert("Decoding failed.");
+        }
       }
     } catch (err) {
+      console.error("Decoding error:", err);
       alert("Something went wrong while decoding.");
     }
 

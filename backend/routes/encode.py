@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, Form, File
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 import uuid
 import os
 from stego.image import encode_image
@@ -13,6 +13,13 @@ async def encode_image_route(
     message: str = Form(...)
 ):
     try:
+        # Validate the image
+        if image.content_type != "image/png":
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "Only PNG images are supported"}
+            )
+            
         input_path = f"temp/{uuid.uuid4()}.png"
         output_path = f"temp/{uuid.uuid4()}_encoded.png"
 
@@ -28,6 +35,12 @@ async def encode_image_route(
         s3_url = upload_file_to_s3(output_path)
 
         return {"url": s3_url}
+    except Exception as e:
+        print(f"[ERROR] Image encoding failed: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Encoding failed: {str(e)}"}
+        )
     
     except Exception as e:
         print(f"[ERROR] Encoding failed: {e}")

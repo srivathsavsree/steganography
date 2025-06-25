@@ -23,17 +23,48 @@ const AudioForm = () => {
     const formData = new FormData();
     formData.append("audio", audio);
     formData.append("message", message);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/encode`, {
-      method: "POST",
-      body: formData,
-    });
-    if (response.ok) {
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      setResultUrl(url);
-    } else {
-      alert("Encoding failed.");
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audio/encode`, {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.url) {
+          setResultUrl(data.url);
+          
+          // Auto-download the file
+          try {
+            const downloadResponse = await fetch(data.url);
+            if (downloadResponse.ok) {
+              const blob = await downloadResponse.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'encoded.wav';
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(url);
+            } else {
+              console.error("Failed to download encoded audio");
+            }
+          } catch (downloadErr) {
+            console.error("Error during auto-download:", downloadErr);
+          }
+        } else {
+          alert("Invalid response from server.");
+        }
+      } else {
+        alert("Encoding failed.");
+      }
+    } catch (err) {
+      console.error("Encoding error:", err);
+      alert("Something went wrong while encoding.");
     }
+    
     setLoading(false);
   };
 
