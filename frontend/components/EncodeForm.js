@@ -8,6 +8,60 @@ const EncodeForm = () => {
   const [decodeImage, setDecodeImage] = useState(null);
   const [decodedMessage, setDecodedMessage] = useState("");
   const [decoding, setDecoding] = useState(false);
+  
+  // Helper function to handle direct file responses
+  const handleDirectFileResponse = async (response) => {
+    try {
+      console.log("Handling direct file response");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      setResultUrl(url);
+      
+      // Auto-download the file
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'encoded.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // Don't revoke URL as we need it for display
+      
+      console.log("Direct file processed successfully");
+    } catch (error) {
+      console.error("Error handling direct file response:", error);
+      alert("Error processing the encoded image");
+    }
+  };
+  
+  // Helper function to try the direct endpoint
+  const tryDirectEndpoint = async () => {
+    console.log("Trying direct endpoint...");
+    
+    // Reset form data
+    const directFormData = new FormData();
+    directFormData.append("image", image);
+    directFormData.append("message", message);
+    
+    try {
+      const directResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/encode/image/direct`, {
+        method: "POST",
+        body: directFormData
+      });
+      
+      if (directResponse.ok) {
+        console.log("Direct encoding successful");
+        await handleDirectFileResponse(directResponse);
+        return true;
+      } else {
+        console.error("Direct encoding failed:", directResponse.status);
+        return false;
+      }
+    } catch (directErr) {
+      console.error("Error with direct encoding:", directErr);
+      return false;
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -81,34 +135,51 @@ const EncodeForm = () => {
       console.log("Response status:", response.status);
       
       if (response.ok) {
-        const data = await response.json();
-        console.log("Encode response data:", data);
+        // Check the content type of the response
+        const contentType = response.headers.get("content-type");
+        console.log("Response content type:", contentType);
         
-        if (data && data.url) {
-          setResultUrl(data.url);
-          
-          // Auto-download the file
+        if (contentType && contentType.includes("application/json")) {
+          // Handle JSON response (S3 URL)
           try {
-            const downloadResponse = await fetch(data.url);
-            if (downloadResponse.ok) {
-              const blob = await downloadResponse.blob();
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = 'encoded.png';
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              window.URL.revokeObjectURL(url);
+            const data = await response.json();
+            console.log("Encode response data:", data);
+            
+            if (data && data.url) {
+              setResultUrl(data.url);
+              
+              // Auto-download the file
+              try {
+                const downloadResponse = await fetch(data.url);
+                if (downloadResponse.ok) {
+                  const blob = await downloadResponse.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'encoded.png';
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  window.URL.revokeObjectURL(url);
+                } else {
+                  console.error("Failed to download encoded image");
+                }
+              } catch (downloadErr) {
+                console.error("Error during auto-download:", downloadErr);
+              }
             } else {
-              console.error("Failed to download encoded image");
+              console.warn("Invalid server response:", data);
+              alert("Invalid response from server.");
             }
-          } catch (downloadErr) {
-            console.error("Error during auto-download:", downloadErr);
+          } catch (jsonErr) {
+            console.error("Error parsing JSON response:", jsonErr);
+            // The response might actually be a direct file despite the content-type
+            await handleDirectFileResponse(response);
           }
         } else {
-          console.warn("Invalid server response:", data);
-          alert("Invalid response from server.");
+          // Handle direct file response (PNG data)
+          console.log("Received direct file response");
+          await handleDirectFileResponse(response);
         }
       } else {
         // Detailed error handling for non-OK responses
@@ -125,45 +196,12 @@ const EncodeForm = () => {
               // If there's an S3 upload error, try the direct endpoint as fallback
               console.log("S3 upload failed, trying direct endpoint...");
               
-              // Reset form data
-              const directFormData = new FormData();
-              directFormData.append("image", image);
-              directFormData.append("message", message);
+              const directSuccess = await tryDirectEndpoint();
               
-              try {
-                const directResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/encode/image/direct`, {
-                  method: "POST",
-                  body: directFormData
-                });
-                
-                if (directResponse.ok) {
-                  console.log("Direct encoding successful");
-                  
-                  // Get the blob directly
-                  const blob = await directResponse.blob();
-                  const url = window.URL.createObjectURL(blob);
-                  
-                  setResultUrl(url);
-                  
-                  // Auto-download the file
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'encoded.png';
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  window.URL.revokeObjectURL(url);
-                  
-                  return; // Exit the function after successful direct encoding
-                } else {
-                  console.error("Direct encoding also failed:", directResponse.status);
-                }
-              } catch (directErr) {
-                console.error("Error with direct encoding:", directErr);
+              if (!directSuccess) {
+                alert("Encoding failed. Please try again later.");
               }
-            }
-            
-            if (errorData && errorData.detail) {
+            } else if (errorData && errorData.detail) {
               alert(`Encoding failed: ${errorData.detail}`);
             } else {
               alert(`Encoding failed. Server status: ${response.status}`);
@@ -184,9 +222,9 @@ const EncodeForm = () => {
       } else {
         alert(`Something went wrong while encoding: ${err.message}`);
       }
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleDecode = async (e) => {
@@ -267,22 +305,27 @@ const EncodeForm = () => {
       } else {
         alert(`Something went wrong while decoding: ${err.message}`);
       }
+    } finally {
+      setDecoding(false);
     }
-
-    setDecoding(false);
   };
 
   const handleDownload = async () => {
-    const response = await fetch(resultUrl);
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'encoded.png';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
+    try {
+      const response = await fetch(resultUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'encoded.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Error downloading the encoded image");
+    }
   };
 
   return (
