@@ -8,7 +8,7 @@ COPY . .
 RUN mkdir -p public styles
 # Create .env.production if it doesn't exist
 RUN if [ ! -f .env.production ]; then \
-    echo "NEXT_PUBLIC_API_URL=https://steganography-api.onrender.com" > .env.production; \
+    echo "NEXT_PUBLIC_API_URL=https://steganography-e1l9.onrender.com" > .env.production; \
     fi
 RUN npm run build
 
@@ -24,6 +24,6 @@ COPY --from=builder /app/node_modules ./node_modules
 RUN mkdir -p styles
 COPY --from=builder /app/styles ./styles
 # Create .env file with environment variables
-RUN echo "NEXT_PUBLIC_API_URL=https://steganography-api.onrender.com" > .env.production
+RUN echo "NEXT_PUBLIC_API_URL=https://steganography-e1l9.onrender.com" > .env.production
 EXPOSE 3000
 CMD ["npm", "start"]

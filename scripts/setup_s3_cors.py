@@ -37,7 +37,7 @@ def setup_s3_cors():
                     "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
                     "AllowedOrigins": [
                         "https://steganography-frontend.onrender.com",
-                        "https://steganography-api.onrender.com",
+                        "https://steganography-e1l9.onrender.com",
                         "http://localhost:3000"
                     ],
                     "ExposeHeaders": ["ETag"],
