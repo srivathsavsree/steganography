@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form
 from fastapi.responses import FileResponse
 import uuid
 import os
@@ -11,7 +11,7 @@ router = APIRouter()
 @router.post("/encode")
 async def encode_video_route(
     video: UploadFile = File(...),
-    message: str = File(...)
+    message: str = Form(...)
 ):
     os.makedirs("temp", exist_ok=True)
 
