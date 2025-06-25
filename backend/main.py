@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from routes import encode, decode, audio, image_file, vedio  # ✅ Fixed spelling here
+from routes import encode, decode, audio, image_file, video  # Fixed spelling: vedio → video
 
 import os
 
@@ -49,7 +49,7 @@ app.include_router(encode.router, prefix="/encode")
 app.include_router(decode.router, prefix="/decode")
 app.include_router(audio.router, prefix="/audio")
 app.include_router(image_file.router, prefix="/image-file")
-app.include_router(vedio.router, prefix="/video")  # ✅ Correct spelling
+app.include_router(video.router, prefix="/video")  # Fixed spelling: vedio → video
 
 print("\nAPI Routes registered:")
 for route in app.routes:

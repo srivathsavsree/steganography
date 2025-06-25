@@ -85,33 +85,64 @@ const EncodeForm = () => {
     setDecoding(true);
     setDecodedMessage("");
 
+    // Log file info for debugging
+    console.log("Decoding file:", decodeImage.name, "Type:", decodeImage.type, "Size:", decodeImage.size);
+
     const formData = new FormData();
     formData.append("image", decodeImage);
 
     try {
+      // Log the API URL
+      console.log("API URL:", `${process.env.NEXT_PUBLIC_API_URL}/decode/image`);
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/decode/image`, {
         method: "POST",
         body: formData,
       });
 
+      console.log("Response status:", response.status);
+      
       if (response.ok) {
-        const data = await response.json();
-        if (data && data.message) {
-          setDecodedMessage(data.message);
-        } else {
-          alert("No message found in the image.");
+        try {
+          const data = await response.json();
+          console.log("Decode response data:", data);
+          
+          if (data && data.message) {
+            setDecodedMessage(data.message);
+          } else {
+            console.warn("No message found in response:", data);
+            alert("No message found in the image.");
+          }
+        } catch (jsonErr) {
+          console.error("Error parsing response JSON:", jsonErr);
+          alert("Error parsing server response.");
         }
       } else {
-        const errorData = await response.json().catch(() => null);
-        if (errorData && errorData.detail) {
-          alert(`Decoding failed: ${errorData.detail}`);
-        } else {
-          alert("Decoding failed.");
+        console.error("Server returned error status:", response.status);
+        
+        try {
+          const errorText = await response.text();
+          console.error("Error response:", errorText);
+          
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData && errorData.detail) {
+              alert(`Decoding failed: ${errorData.detail}`);
+            } else {
+              alert(`Decoding failed. Server status: ${response.status}`);
+            }
+          } catch (jsonErr) {
+            console.error("Could not parse error response as JSON:", jsonErr);
+            alert(`Decoding failed. Server status: ${response.status}`);
+          }
+        } catch (textErr) {
+          console.error("Could not read error response text:", textErr);
+          alert(`Decoding failed. Server status: ${response.status}`);
         }
       }
     } catch (err) {
-      console.error("Decoding error:", err);
-      alert("Something went wrong while decoding.");
+      console.error("Decoding network error:", err);
+      alert(`Something went wrong while decoding: ${err.message}`);
     }
 
     setDecoding(false);
