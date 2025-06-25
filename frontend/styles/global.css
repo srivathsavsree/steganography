@@ -150,6 +150,63 @@ label {
   font-weight: 500;
 }
 
+/* === LOADING SPINNER === */
+.steg-loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 1s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* === INFORMATION AND FEEDBACK === */
+.steg-file-info {
+  font-size: 0.9rem;
+  color: #93c5fd;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.steg-message-info {
+  font-size: 0.9rem;
+  color: #93c5fd;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.steg-required {
+  color: #f87171;
+  font-size: 0.9rem;
+}
+
+.steg-success {
+  color: #4ade80;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.steg-result {
+  background: rgba(17, 24, 39, 0.8);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+}
+
+.steg-error {
+  color: #f87171;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
   h1 {

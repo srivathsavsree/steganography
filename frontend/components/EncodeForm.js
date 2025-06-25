@@ -10,11 +10,42 @@ const EncodeForm = () => {
   const [decoding, setDecoding] = useState(false);
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    const file = e.target.files[0];
+    
+    if (file) {
+      // Validate file type
+      if (file.type !== 'image/png') {
+        alert('Please select a PNG image. Other image formats are not supported.');
+        e.target.value = ''; // Clear the file input
+        return;
+      }
+      
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds 5MB. Please select a smaller image.');
+        e.target.value = ''; // Clear the file input
+        return;
+      }
+      
+      setImage(file);
+      console.log("Image selected:", file.name, "Type:", file.type, "Size:", file.size);
+    }
   };
 
   const handleDecodeImageChange = (e) => {
-    setDecodeImage(e.target.files[0]);
+    const file = e.target.files[0];
+    
+    if (file) {
+      // Validate file type
+      if (file.type !== 'image/png') {
+        alert('Please select a PNG image. Other image formats are not supported for decoding.');
+        e.target.value = ''; // Clear the file input
+        return;
+      }
+      
+      setDecodeImage(file);
+      console.log("Decode image selected:", file.name, "Type:", file.type, "Size:", file.size);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -32,13 +63,27 @@ const EncodeForm = () => {
     formData.append("message", message);
 
     try {
+      // Log the request details for debugging
+      console.log("Encoding request to:", `${process.env.NEXT_PUBLIC_API_URL}/encode/image`);
+      console.log("Encoding file:", image.name, "Type:", image.type, "Size:", image.size, "Message length:", message.length);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/encode/image`, {
         method: "POST",
         body: formData,
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
+      console.log("Response status:", response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log("Encode response data:", data);
+        
         if (data && data.url) {
           setResultUrl(data.url);
           
@@ -62,14 +107,40 @@ const EncodeForm = () => {
             console.error("Error during auto-download:", downloadErr);
           }
         } else {
+          console.warn("Invalid server response:", data);
           alert("Invalid response from server.");
         }
       } else {
-        alert("Encoding failed.");
+        // Detailed error handling for non-OK responses
+        console.error("Server returned error status:", response.status);
+        
+        try {
+          const errorText = await response.text();
+          console.error("Error response:", errorText);
+          
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData && errorData.detail) {
+              alert(`Encoding failed: ${errorData.detail}`);
+            } else {
+              alert(`Encoding failed. Server status: ${response.status}`);
+            }
+          } catch (jsonErr) {
+            console.error("Could not parse error response as JSON:", jsonErr);
+            alert(`Encoding failed. Server status: ${response.status}\nResponse: ${errorText.substring(0, 100)}${errorText.length > 100 ? '...' : ''}`);
+          }
+        } catch (textErr) {
+          console.error("Could not read error response text:", textErr);
+          alert(`Encoding failed. Server status: ${response.status}`);
+        }
       }
     } catch (err) {
-      console.error("Encoding error:", err);
-      alert("Something went wrong while encoding.");
+      console.error("Encoding network error:", err);
+      if (err.name === 'AbortError') {
+        alert('Request timed out after 2 minutes. The image may be too large or the server is busy.');
+      } else {
+        alert(`Something went wrong while encoding: ${err.message}`);
+      }
     }
 
     setLoading(false);
@@ -95,10 +166,16 @@ const EncodeForm = () => {
       // Log the API URL
       console.log("API URL:", `${process.env.NEXT_PUBLIC_API_URL}/decode/image`);
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/decode/image`, {
         method: "POST",
         body: formData,
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       console.log("Response status:", response.status);
       
@@ -142,7 +219,11 @@ const EncodeForm = () => {
       }
     } catch (err) {
       console.error("Decoding network error:", err);
-      alert(`Something went wrong while decoding: ${err.message}`);
+      if (err.name === 'AbortError') {
+        alert('Request timed out after 1 minute. The image may be too large or the server is busy.');
+      } else {
+        alert(`Something went wrong while decoding: ${err.message}`);
+      }
     }
 
     setDecoding(false);
@@ -166,30 +247,51 @@ const EncodeForm = () => {
       <div className="steg-form">
         <div className="steg-section-title">Hide Message in Image</div>
         <form onSubmit={handleSubmit}>
-          <label>Upload PNG Image</label>
-          <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" />
+          <label>Upload PNG Image <span className="steg-required">*</span></label>
+          <input type="file" accept="image/png" onChange={handleImageChange} className="steg-file-input" required />
+          {image && (
+            <div className="steg-file-info">
+              Selected: {image.name} ({(image.size / 1024).toFixed(2)} KB)
+            </div>
+          )}
 
-          <label>Message to Hide</label>
+          <label>Message to Hide <span className="steg-required">*</span></label>
           <input
             type="text"
             placeholder="Enter your secret message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="steg-input"
+            required
           />
+          {message && (
+            <div className="steg-message-info">
+              Message length: {message.length} characters
+            </div>
+          )}
 
           <button type="submit" disabled={loading} className="steg-btn">
-            {loading ? "Encoding..." : "Encode Image"}
+            {loading ? (
+              <>
+                <span className="steg-loading-spinner"></span>
+                Encoding...
+              </>
+            ) : (
+              "Encode Image"
+            )}
           </button>
 
           {resultUrl && (
-            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <a href={resultUrl} target="_blank" rel="noopener noreferrer" className="steg-result-link">
-                View Encoded Image
-              </a>
-              <button type="button" onClick={handleDownload} className="steg-btn">
-                Download Again
-              </button>
+            <div className="steg-result">
+              <div className="steg-success">Encoding successful!</div>
+              <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <a href={resultUrl} target="_blank" rel="noopener noreferrer" className="steg-result-link">
+                  View Encoded Image
+                </a>
+                <button type="button" onClick={handleDownload} className="steg-btn">
+                  Download Again
+                </button>
+              </div>
             </div>
           )}
         </form>
@@ -198,11 +300,23 @@ const EncodeForm = () => {
       <div className="steg-form">
         <div className="steg-section-title">Decode Hidden Message</div>
         <form onSubmit={handleDecode}>
-          <label>Upload Encoded PNG Image</label>
-          <input type="file" accept="image/png" onChange={handleDecodeImageChange} className="steg-file-input" />
+          <label>Upload Encoded PNG Image <span className="steg-required">*</span></label>
+          <input type="file" accept="image/png" onChange={handleDecodeImageChange} className="steg-file-input" required />
+          {decodeImage && (
+            <div className="steg-file-info">
+              Selected: {decodeImage.name} ({(decodeImage.size / 1024).toFixed(2)} KB)
+            </div>
+          )}
 
           <button type="submit" disabled={decoding} className="steg-btn">
-            {decoding ? "Decoding..." : "Decode Image"}
+            {decoding ? (
+              <>
+                <span className="steg-loading-spinner"></span>
+                Decoding...
+              </>
+            ) : (
+              "Decode Image"
+            )}
           </button>
 
           {decodedMessage && (
