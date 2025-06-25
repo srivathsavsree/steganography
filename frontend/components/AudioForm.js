@@ -330,26 +330,3 @@ const AudioForm = () => {
 };
 
 export default AudioForm;
-      
-      <div className="steg-form">
-        <div className="steg-section-title">Decode Hidden Message</div>
-        <form onSubmit={handleDecode}>
-          <label>Upload Encoded Audio File</label>
-          <input type="file" accept="audio/wav,audio/mp3" onChange={handleAudioChange} className="steg-file-input" />
-          
-          <button type="submit" disabled={decoding} className="steg-btn">
-            {decoding ? "Decoding..." : "Decode Audio"}
-          </button>
-          
-          {decoded && (
-            <div className="steg-decoded-message">
-              <strong>Decoded Message:</strong> {decoded}
-            </div>
-          )}
-        </form>
-      </div>
-    </>
-  );
-};
-
-export default AudioForm;
