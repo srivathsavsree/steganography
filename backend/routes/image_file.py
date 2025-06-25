@@ -23,6 +23,20 @@ async def encode_image_file_route(
         
         os.makedirs("temp", exist_ok=True)
 
+        # Check if temp directory is writable
+        try:
+            test_file = f"temp/test_{uuid.uuid4()}.txt"
+            with open(test_file, "w") as f:
+                f.write("test")
+            os.remove(test_file)
+            print(f"[INFO] Temp directory is writable")
+        except Exception as perm_error:
+            print(f"[ERROR] Temp directory permission error: {perm_error}")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Server configuration error: Unable to write to temp directory"}
+            )
+
         if image.content_type != "image/png":
             print(f"[WARNING] Invalid image content type: {image.content_type}")
             return JSONResponse(

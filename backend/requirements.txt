@@ -8,3 +8,6 @@ python-dotenv
 pydub
 numpy
 opencv-python-headless
+requests
+aiofiles
+ffmpeg-python

@@ -70,7 +70,11 @@ def upload_file_to_s3(file_path: str, object_name: str = None) -> str:
         
         # Set default object name if not provided
         if object_name is None:
-            object_name = f"stego/{uuid4()}.png"
+            # Determine appropriate file extension based on the source file
+            file_ext = os.path.splitext(file_path.lower())[1]
+            if not file_ext:
+                file_ext = ".bin"  # Default if no extension
+            object_name = f"stego/{uuid4()}{file_ext}"
         
         print(f"[INFO] S3 object name: {object_name}")
         print(f"[INFO] S3 bucket: {AWS_S3_BUCKET}")
@@ -84,13 +88,28 @@ def upload_file_to_s3(file_path: str, object_name: str = None) -> str:
             print(f"[DEBUG] AWS_S3_BUCKET exists: {bool(AWS_S3_BUCKET)}")
             raise ValueError(error_msg)
             
+        # Determine content type based on file extension
+        content_type = "application/octet-stream"  # Default
+        file_ext = os.path.splitext(file_path.lower())[1]
+        
+        if file_ext == ".png" or file_ext == ".jpg" or file_ext == ".jpeg":
+            content_type = "image/png" if file_ext == ".png" else "image/jpeg"
+        elif file_ext == ".wav":
+            content_type = "audio/wav"
+        elif file_ext == ".mp3":
+            content_type = "audio/mpeg"
+        elif file_ext == ".mp4":
+            content_type = "video/mp4"
+        
+        print(f"[INFO] Content type set to: {content_type}")
+        
         # Upload the file
         s3_client.upload_file(
             file_path, 
             AWS_S3_BUCKET, 
             object_name, 
             ExtraArgs={
-                "ContentType": "image/png",
+                "ContentType": content_type,
                 "ACL": "public-read"  # Make the object publicly readable
             }
         )

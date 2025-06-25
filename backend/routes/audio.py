@@ -20,23 +20,71 @@ async def encode_audio_route(
         print(f"[INFO] Message length: {len(message)}")
         
         # Validate the audio file
-        if audio.content_type not in ["audio/wav", "audio/x-wav", "audio/mp3"]:
-            print(f"[WARNING] Invalid content type: {audio.content_type}")
+        print(f"[INFO] Audio content type: {audio.content_type}, filename: {audio.filename}")
+        
+        # Check file extension and content type
+        valid_extensions = ['.wav', '.mp3']
+        file_ext = os.path.splitext(audio.filename.lower())[1]
+        
+        # More permissive content type check
+        is_valid_content_type = (
+            audio.content_type.startswith("audio/") or 
+            "audio" in audio.content_type.lower() or
+            file_ext in valid_extensions
+        )
+        
+        if not is_valid_content_type or file_ext not in valid_extensions:
+            print(f"[WARNING] Invalid content type or file extension: {audio.content_type}, {file_ext}")
             return JSONResponse(
                 status_code=400, 
-                content={"detail": "Only WAV or MP3 files are supported."}
+                content={"detail": f"Only WAV or MP3 files are supported. Please upload a file with .wav or .mp3 extension. You uploaded a file with content type: {audio.content_type} and extension: {file_ext}"}
+            )
+            
+        # Check message length
+        if len(message) > 10000:
+            print(f"[WARNING] Message too long: {len(message)} characters")
+            return JSONResponse(
+                status_code=400,
+                content={"detail": f"Message too long. Maximum length is 10000 characters."}
             )
 
         os.makedirs("temp", exist_ok=True)
 
-        input_ext = ".wav" if "wav" in audio.content_type else ".mp3"
-        input_path = f"temp/{uuid.uuid4()}{input_ext}"
-        output_path = f"temp/{uuid.uuid4()}_encoded.wav"
+        # Check if temp directory is writable
+        try:
+            test_file = f"temp/test_{uuid.uuid4()}.txt"
+            with open(test_file, "w") as f:
+                f.write("test")
+            os.remove(test_file)
+            print(f"[INFO] Temp directory is writable")
+        except Exception as perm_error:
+            print(f"[ERROR] Temp directory permission error: {perm_error}")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Server configuration error: Unable to write to temp directory"}
+            )
+
+        # Get file extension from the uploaded file
+        file_ext = os.path.splitext(audio.filename.lower())[1]
+        if not file_ext:
+            file_ext = ".wav"  # Default to .wav if no extension
+            
+        # Generate unique paths with proper extensions
+        input_path = f"temp/{uuid.uuid4()}{file_ext}"
+        output_path = f"temp/{uuid.uuid4()}_encoded.wav"  # Output is always WAV
 
         try:
             # Read and save the file
             file_content = await audio.read()
             print(f"[INFO] Read {len(file_content)} bytes from uploaded audio file")
+            
+            # Check file size
+            if len(file_content) > 25 * 1024 * 1024:  # 25 MB limit
+                print(f"[WARNING] File too large: {len(file_content)} bytes")
+                return JSONResponse(
+                    status_code=400,
+                    content={"detail": f"File too large. Maximum size is 25 MB."}
+                )
             
             with open(input_path, "wb") as f:
                 f.write(file_content)
@@ -51,10 +99,41 @@ async def encode_audio_route(
 
         try:
             print(f"[INFO] Encoding message into audio: {input_path}")
-            encode_audio(input_path, message, output_path)
-            print(f"[INFO] Successfully encoded message, output file size: {os.path.getsize(output_path)} bytes")
+            
+            # Make sure the file exists before trying to encode
+            if not os.path.exists(input_path):
+                print(f"[ERROR] Input file does not exist: {input_path}")
+                return JSONResponse(
+                    status_code=500,
+                    content={"detail": "Internal error: Could not save uploaded file"}
+                )
+                
+            # Check if the file is readable
+            try:
+                with open(input_path, 'rb') as f:
+                    test = f.read(1024)  # Try reading some bytes
+                print(f"[INFO] Input file is readable")
+            except Exception as io_error:
+                print(f"[ERROR] Input file is not readable: {io_error}")
+                return JSONResponse(
+                    status_code=500,
+                    content={"detail": "Internal error: Could not read uploaded file"}
+                )
+            
+            # Proceed with encoding
+            try:
+                encode_audio(input_path, message, output_path)
+                print(f"[INFO] Successfully encoded message, output file size: {os.path.getsize(output_path)} bytes")
+            except ValueError as value_error:
+                print(f"[ERROR] Encoding value error: {value_error}")
+                return JSONResponse(
+                    status_code=400,
+                    content={"detail": str(value_error)}
+                )
+                
         except Exception as encode_error:
             print(f"[ERROR] Encoding algorithm failed: {encode_error}")
+            traceback.print_exc()
             return JSONResponse(
                 status_code=500,
                 content={"detail": f"Error in encoding algorithm: {str(encode_error)}"}
@@ -120,17 +199,35 @@ async def decode_audio_route(
         # Log request info
         print(f"[INFO] Decode audio request received for file: {audio.filename}, content_type: {audio.content_type}")
         
-        if audio.content_type not in ["audio/wav", "audio/x-wav", "audio/mp3"]:
-            print(f"[WARNING] Invalid content type: {audio.content_type}")
+        # Check file extension and content type
+        valid_extensions = ['.wav', '.mp3']
+        file_ext = os.path.splitext(audio.filename.lower())[1]
+        
+        # More permissive content type check
+        is_valid_content_type = (
+            audio.content_type.startswith("audio/") or 
+            "audio" in audio.content_type.lower() or
+            file_ext in valid_extensions
+        )
+        
+        if not is_valid_content_type or file_ext not in valid_extensions:
+            print(f"[WARNING] Invalid content type or file extension: {audio.content_type}, {file_ext}")
             return JSONResponse(
                 status_code=400, 
-                content={"detail": "Only WAV or MP3 files are supported."}
+                content={"detail": f"Only WAV or MP3 files are supported. Please upload a file with .wav or .mp3 extension. You uploaded a file with content type: {audio.content_type} and extension: {file_ext}"}
             )
 
         os.makedirs("temp", exist_ok=True)
 
-        input_ext = ".wav" if "wav" in audio.content_type else ".mp3"
-        input_path = f"temp/{uuid.uuid4()}{input_ext}"
+        # Get file extension from the uploaded file
+        file_ext = os.path.splitext(audio.filename.lower())[1]
+        if not file_ext:
+            file_ext = ".wav"  # Default to .wav if no extension
+            
+        # Generate unique path with proper extension
+        input_path = f"temp/{uuid.uuid4()}{file_ext}"
+        
+        print(f"[INFO] Using file extension: {file_ext}, input path: {input_path}")
 
         try:
             # Read and save the file
@@ -182,19 +279,36 @@ async def encode_audio_direct(
         print(f"[INFO] Direct encode audio request received for file: {audio.filename}, content_type: {audio.content_type}")
         print(f"[INFO] Message length: {len(message)}")
         
-        # Validate the audio file
-        if audio.content_type not in ["audio/wav", "audio/x-wav", "audio/mp3"]:
-            print(f"[WARNING] Invalid content type: {audio.content_type}")
+        # Check file extension and content type
+        valid_extensions = ['.wav', '.mp3']
+        file_ext = os.path.splitext(audio.filename.lower())[1]
+        
+        # More permissive content type check
+        is_valid_content_type = (
+            audio.content_type.startswith("audio/") or 
+            "audio" in audio.content_type.lower() or
+            file_ext in valid_extensions
+        )
+        
+        if not is_valid_content_type or file_ext not in valid_extensions:
+            print(f"[WARNING] Invalid content type or file extension: {audio.content_type}, {file_ext}")
             return JSONResponse(
                 status_code=400, 
-                content={"detail": "Only WAV or MP3 files are supported."}
+                content={"detail": f"Only WAV or MP3 files are supported. Please upload a file with .wav or .mp3 extension. You uploaded a file with content type: {audio.content_type} and extension: {file_ext}"}
             )
 
         os.makedirs("temp", exist_ok=True)
 
-        input_ext = ".wav" if "wav" in audio.content_type else ".mp3"
-        input_path = f"temp/{uuid.uuid4()}{input_ext}"
-        output_path = f"temp/{uuid.uuid4()}_encoded.wav"
+        # Get file extension from the uploaded file
+        file_ext = os.path.splitext(audio.filename.lower())[1]
+        if not file_ext:
+            file_ext = ".wav"  # Default to .wav if no extension
+            
+        # Generate unique paths with proper extensions
+        input_path = f"temp/{uuid.uuid4()}{file_ext}"
+        output_path = f"temp/{uuid.uuid4()}_encoded.wav"  # Output is always WAV
+        
+        print(f"[INFO] Using file extension: {file_ext}, input path: {input_path}")
 
         # Read and save the file
         file_content = await audio.read()

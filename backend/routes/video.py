@@ -27,6 +27,14 @@ async def encode_video_route(
                 status_code=400,
                 content={"detail": f"Only video files are supported, received {video.content_type}"}
             )
+            
+        # Check message length
+        if len(message) > 10000:
+            print(f"[WARNING] Message too long: {len(message)} characters")
+            return JSONResponse(
+                status_code=400,
+                content={"detail": f"Message too long. Maximum length is 10000 characters."}
+            )
 
         input_ext = os.path.splitext(video.filename)[1] or ".mp4"
         input_path = f"temp/{uuid.uuid4()}{input_ext}"
@@ -36,6 +44,14 @@ async def encode_video_route(
             # Read and save the file
             file_content = await video.read()
             print(f"[INFO] Read {len(file_content)} bytes from uploaded video")
+            
+            # Check file size
+            if len(file_content) > 50 * 1024 * 1024:  # 50 MB limit
+                print(f"[WARNING] File too large: {len(file_content)} bytes")
+                return JSONResponse(
+                    status_code=400,
+                    content={"detail": f"File too large. Maximum size is 50 MB."}
+                )
             
             with open(input_path, "wb") as f:
                 f.write(file_content)
