@@ -120,6 +120,49 @@ const EncodeForm = () => {
           
           try {
             const errorData = JSON.parse(errorText);
+            
+            if (errorData && errorData.detail && errorData.detail.includes("Error uploading to S3")) {
+              // If there's an S3 upload error, try the direct endpoint as fallback
+              console.log("S3 upload failed, trying direct endpoint...");
+              
+              // Reset form data
+              const directFormData = new FormData();
+              directFormData.append("image", image);
+              directFormData.append("message", message);
+              
+              try {
+                const directResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/encode/image/direct`, {
+                  method: "POST",
+                  body: directFormData
+                });
+                
+                if (directResponse.ok) {
+                  console.log("Direct encoding successful");
+                  
+                  // Get the blob directly
+                  const blob = await directResponse.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  
+                  setResultUrl(url);
+                  
+                  // Auto-download the file
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'encoded.png';
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  window.URL.revokeObjectURL(url);
+                  
+                  return; // Exit the function after successful direct encoding
+                } else {
+                  console.error("Direct encoding also failed:", directResponse.status);
+                }
+              } catch (directErr) {
+                console.error("Error with direct encoding:", directErr);
+              }
+            }
+            
             if (errorData && errorData.detail) {
               alert(`Encoding failed: ${errorData.detail}`);
             } else {
