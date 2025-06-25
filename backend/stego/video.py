@@ -4,16 +4,42 @@ import time
 import os
 
 def encode_video(input_path: str, message: str, output_path: str):
+    start_time = time.time()
+    print(f"[INFO] Starting video encoding. Input file: {input_path}")
+    
+    # Check input file
+    if not os.path.exists(input_path):
+        raise ValueError(f"Input file does not exist: {input_path}")
+        
+    file_size = os.path.getsize(input_path)
+    if file_size == 0:
+        raise ValueError(f"Input file is empty: {input_path}")
+        
+    print(f"[INFO] Input file exists, size: {file_size} bytes")
+        
     # Open video file
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
-        raise ValueError("Unable to open video file")
+        raise ValueError(f"Unable to open video file: {input_path}. Please check the file format.")
 
     # Get video properties
     width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps    = cap.get(cv2.CAP_PROP_FPS)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    
+    # Check if we could read video properties
+    if width <= 0 or height <= 0:
+        raise ValueError(f"Invalid video dimensions: {width}x{height}")
+        
+    if fps <= 0:
+        print(f"[WARNING] Invalid FPS: {fps}, setting to default 30")
+        fps = 30.0
+        
+    if total_frames <= 0:
+        print(f"[WARNING] Couldn't determine total frames, will read until end of file")
+        total_frames = 1000  # Set a default value
+        
     codec  = cv2.VideoWriter_fourcc(*'mp4v')
 
     # Print video info for debugging
@@ -25,7 +51,16 @@ def encode_video(input_path: str, message: str, output_path: str):
         # Consider limiting frames or resizing for large videos
         # total_frames = min(total_frames, 300)  # Limit to 300 frames if needed
 
+    # Create video writer
     out = cv2.VideoWriter(output_path, codec, fps, (width, height))
+    if not out.isOpened():
+        raise ValueError(f"Failed to create output video writer. Check codec support and output path: {output_path}")
+    
+    # Verify we can write to the output directory
+    output_dir = os.path.dirname(output_path)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+        print(f"[INFO] Created output directory: {output_dir}")
 
     # Convert message to binary with delimiter
     message += "###"  # End of message delimiter
@@ -62,7 +97,18 @@ def encode_video(input_path: str, message: str, output_path: str):
             flat_frame = frame.flatten()
             for i in range(min(len(flat_frame), pixels_needed)):
                 if msg_index < message_length:
-                    flat_frame[i] = (flat_frame[i] & ~1) | int(binary_message[msg_index])
+                    # Ensure values stay within valid uint8 range (0-255)
+                    # Clear the LSB and then set it to the message bit
+                    current_value = int(flat_frame[i])
+                    new_value = (current_value & 254) | int(binary_message[msg_index])  # 254 is ~1 (11111110)
+                    
+                    # Ensure the value is within bounds
+                    if 0 <= new_value <= 255:
+                        flat_frame[i] = new_value
+                    else:
+                        # If somehow out of bounds, just skip this pixel
+                        print(f"[WARNING] Pixel value {new_value} out of bounds at index {i}, skipping")
+                    
                     msg_index += 1
                 else:
                     break
@@ -133,7 +179,13 @@ def decode_video(input_path: str) -> str:
         # Extract bits from the first N pixels of the frame
         flat_frame = frame.flatten()
         for i in range(min(max_bits - len(binary_data), len(flat_frame))):
-            binary_data += str(flat_frame[i] & 1)
+            try:
+                # Extract the LSB safely
+                pixel_value = int(flat_frame[i])
+                binary_data += str(pixel_value & 1)
+            except Exception as e:
+                print(f"[WARNING] Error extracting bit at index {i}: {str(e)}")
+                continue
             
             # Check periodically if we have enough data to extract the message
             if len(binary_data) % 8 == 0 and len(binary_data) >= 8:

@@ -20,12 +20,22 @@ async def encode_video_route(
         
         os.makedirs("temp", exist_ok=True)
 
-        # Validate video content type
-        if not video.content_type.startswith("video/"):
-            print(f"[WARNING] Invalid content type: {video.content_type}")
+        # Validate video content type and file extension
+        valid_extensions = ['.mp4', '.avi', '.mov', '.mkv']
+        file_ext = os.path.splitext(video.filename.lower())[1]
+        
+        # More permissive content type check
+        is_valid_content_type = (
+            video.content_type.startswith("video/") or 
+            "video" in video.content_type.lower() or
+            file_ext in valid_extensions
+        )
+        
+        if not is_valid_content_type:
+            print(f"[WARNING] Invalid content type: {video.content_type}, file extension: {file_ext}")
             return JSONResponse(
                 status_code=400,
-                content={"detail": f"Only video files are supported, received {video.content_type}"}
+                content={"detail": f"Only video files are supported. Supported formats: MP4, AVI, MOV, MKV. Received content type: {video.content_type}, file extension: {file_ext}"}
             )
             
         # Check message length
@@ -66,6 +76,31 @@ async def encode_video_route(
 
         try:
             print(f"[INFO] Encoding message into video: {input_path}")
+            print(f"[INFO] Video file size: {os.path.getsize(input_path)} bytes")
+            print(f"[INFO] Video content type: {video.content_type}")
+            print(f"[INFO] Message length: {len(message)} characters")
+            
+            # Check if file exists and is readable
+            if not os.path.exists(input_path):
+                print(f"[ERROR] Input file does not exist: {input_path}")
+                return JSONResponse(
+                    status_code=500,
+                    content={"detail": "Internal error: Could not save uploaded file"}
+                )
+                
+            # Check if the file is readable
+            try:
+                with open(input_path, 'rb') as f:
+                    test = f.read(1024)  # Try reading some bytes
+                print(f"[INFO] Input file is readable")
+            except Exception as io_error:
+                print(f"[ERROR] Input file is not readable: {io_error}")
+                return JSONResponse(
+                    status_code=500,
+                    content={"detail": "Internal error: Could not read uploaded file"}
+                )
+            
+            # Encode the video
             encode_video(input_path, message, output_path)
             print(f"[INFO] Successfully encoded message, output file size: {os.path.getsize(output_path)} bytes")
         except Exception as encode_error:
@@ -137,12 +172,22 @@ async def decode_video_route(
         
         os.makedirs("temp", exist_ok=True)
 
-        # Validate video content type
-        if not video.content_type.startswith("video/"):
-            print(f"[WARNING] Invalid content type: {video.content_type}")
+        # Validate video content type and file extension
+        valid_extensions = ['.mp4', '.avi', '.mov', '.mkv']
+        file_ext = os.path.splitext(video.filename.lower())[1]
+        
+        # More permissive content type check
+        is_valid_content_type = (
+            video.content_type.startswith("video/") or 
+            "video" in video.content_type.lower() or
+            file_ext in valid_extensions
+        )
+        
+        if not is_valid_content_type:
+            print(f"[WARNING] Invalid content type: {video.content_type}, file extension: {file_ext}")
             return JSONResponse(
                 status_code=400,
-                content={"detail": f"Only video files are supported, received {video.content_type}"}
+                content={"detail": f"Only video files are supported. Supported formats: MP4, AVI, MOV, MKV. Received content type: {video.content_type}, file extension: {file_ext}"}
             )
 
         input_ext = os.path.splitext(video.filename)[1] or ".mp4"
@@ -200,12 +245,22 @@ async def encode_video_direct(
         
         os.makedirs("temp", exist_ok=True)
 
-        # Validate video content type
-        if not video.content_type.startswith("video/"):
-            print(f"[WARNING] Invalid content type: {video.content_type}")
+        # Validate video content type and file extension
+        valid_extensions = ['.mp4', '.avi', '.mov', '.mkv']
+        file_ext = os.path.splitext(video.filename.lower())[1]
+        
+        # More permissive content type check
+        is_valid_content_type = (
+            video.content_type.startswith("video/") or 
+            "video" in video.content_type.lower() or
+            file_ext in valid_extensions
+        )
+        
+        if not is_valid_content_type:
+            print(f"[WARNING] Invalid content type: {video.content_type}, file extension: {file_ext}")
             return JSONResponse(
                 status_code=400,
-                content={"detail": f"Only video files are supported, received {video.content_type}"}
+                content={"detail": f"Only video files are supported. Supported formats: MP4, AVI, MOV, MKV. Received content type: {video.content_type}, file extension: {file_ext}"}
             )
 
         input_ext = os.path.splitext(video.filename)[1] or ".mp4"
