@@ -330,23 +330,6 @@ const AudioForm = () => {
 };
 
 export default AudioForm;
-          
-          <label>Message to Hide</label>
-          <input type="text" placeholder="Enter your secret message" value={message} onChange={(e) => setMessage(e.target.value)} className="steg-input" />
-          
-          <button type="submit" disabled={loading} className="steg-btn">
-            {loading ? "Encoding..." : "Encode Audio"}
-          </button>
-          
-          {resultUrl && (
-            <div style={{ marginTop: '1rem' }}>
-              <a href={resultUrl} download="encoded.wav" className="steg-result-link">
-                Download Encoded Audio
-              </a>
-            </div>
-          )}
-        </form>
-      </div>
       
       <div className="steg-form">
         <div className="steg-section-title">Decode Hidden Message</div>
