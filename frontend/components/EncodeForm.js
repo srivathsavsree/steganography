@@ -9,8 +9,6 @@ const EncodeForm = () => {
   const [decodedMessage, setDecodedMessage] = useState("");
   const [decoding, setDecoding] = useState(false);
 
-  const BACKEND_URL = "https://steganography-e1l9.onrender.com"; // ✅ Updated backend URL
-
   const handleImageChange = (e) => {
     setImage(e.target.files[0]);
   };
@@ -25,23 +23,46 @@ const EncodeForm = () => {
       alert("Please select an image and enter a message.");
       return;
     }
+
     setLoading(true);
     setResultUrl("");
+
     const formData = new FormData();
     formData.append("image", image);
     formData.append("message", message);
 
-    const response = await fetch(`${BACKEND_URL}/encode/image`, {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/encode/image`, {
+        method: "POST",
+        body: formData,
+      });
 
-    if (response.ok) {
-      const data = await response.json();
-      setResultUrl(data.url);
-    } else {
-      alert("Encoding failed.");
+      if (response.ok) {
+        const data = await response.json();
+        setResultUrl(data.url);
+
+        // Auto-download the file
+        const downloadAuto = async () => {
+          const response = await fetch(data.url);
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'encoded.png';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        };
+        downloadAuto();
+
+      } else {
+        alert("Encoding failed.");
+      }
+    } catch (err) {
+      alert("Something went wrong while encoding.");
     }
+
     setLoading(false);
   };
 
@@ -51,22 +72,29 @@ const EncodeForm = () => {
       alert("Please select a PNG image to decode.");
       return;
     }
+
     setDecoding(true);
     setDecodedMessage("");
+
     const formData = new FormData();
     formData.append("image", decodeImage);
 
-    const response = await fetch(`${BACKEND_URL}/decode/image`, {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/decode/image`, {
+        method: "POST",
+        body: formData,
+      });
 
-    if (response.ok) {
-      const data = await response.json();
-      setDecodedMessage(data.message);
-    } else {
-      alert("Decoding failed.");
+      if (response.ok) {
+        const data = await response.json();
+        setDecodedMessage(data.message);
+      } else {
+        alert("Decoding failed.");
+      }
+    } catch (err) {
+      alert("Something went wrong while decoding.");
     }
+
     setDecoding(false);
   };
 
@@ -74,9 +102,9 @@ const EncodeForm = () => {
     const response = await fetch(resultUrl);
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
-    a.download = "encoded.png";
+    a.download = 'encoded.png';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -105,12 +133,12 @@ const EncodeForm = () => {
           </button>
 
           {resultUrl && (
-            <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <a href={resultUrl} target="_blank" rel="noopener noreferrer" className="steg-result-link">
                 View Encoded Image
               </a>
               <button type="button" onClick={handleDownload} className="steg-btn">
-                Download Image
+                Download Again
               </button>
             </div>
           )}
@@ -121,12 +149,7 @@ const EncodeForm = () => {
         <div className="steg-section-title">Decode Hidden Message</div>
         <form onSubmit={handleDecode}>
           <label>Upload Encoded PNG Image</label>
-          <input
-            type="file"
-            accept="image/png"
-            onChange={handleDecodeImageChange}
-            className="steg-file-input"
-          />
+          <input type="file" accept="image/png" onChange={handleDecodeImageChange} className="steg-file-input" />
 
           <button type="submit" disabled={decoding} className="steg-btn">
             {decoding ? "Decoding..." : "Decode Image"}
